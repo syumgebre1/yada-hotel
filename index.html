@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YADA HOTEL - Home</title>
+    <link rel="stylesheet" href="J.css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">🏨 YADA HOTEL</a>
+        <div class="navbar-links">
+            <a href="index.html">Home</a>
+            <a href="rooms.html">Rooms</a>
+            <a href="menu.html">Menu</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="login.html" id="authLink">Login</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>🏨 Welcome to YADA HOTEL</h1>
+            <p>Stay • Dine • Relax</p>
+            <p style="font-size: 18px; color: #c3cfe2;">Experience comfort, luxury, and delicious food in the heart of the city.</p>
+            <div class="btn-group">
+                <a href="rooms.html" class="btn btn-gold" style="font-size: 18px; padding: 15px 35px;">🛏️ View Rooms</a>
+                <a href="menu.html" class="btn btn-primary" style="font-size: 18px; padding: 15px 35px;">🍽️ View Menu</a>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="icon">🛏️</span>
+                <h3>13 Luxurious Rooms</h3>
+                <p>Comfortable and well-furnished rooms for your stay</p>
+            </div>
+            <div class="feature-card">
+                <span class="icon">🍽️</span>
+                <h3>Delicious Food</h3>
+                <p>Enjoy our special Ethiopian and international cuisine</p>
+            </div>
+            <div class="feature-card">
+                <span class="icon">⭐</span>
+                <h3>Excellent Service</h3>
+                <p>24/7 room service and professional staff</p>
+            </div>
+            <div class="feature-card">
+                <span class="icon">🌍</span>
+                <h3>Prime Location</h3>
+                <p>Conveniently located near major attractions</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 40px 0; padding: 40px; background: linear-gradient(135deg, #e6b800, #f5c400); border-radius: 20px;">
+            <h2 style="color: #1a1a2e;">✨ Book Your Stay & Dine With Us</h2>
+            <p style="color: #1a1a2e; font-size: 18px;">Check availability and book your room now!</p>
+            <a href="rooms.html" class="btn btn-primary" style="margin-top: 15px; font-size: 18px; padding: 15px 40px;">Book Now</a>
+        </div>
+    </div>
+
+    <script>
+        function checkAuth() {
+            const user = localStorage.getItem('user');
+            const authLink = document.getElementById('authLink');
+            
+            if (user) {
+                authLink.textContent = 'Logout';
+                authLink.href = '#';
+                authLink.onclick = function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('user');
+                    window.location.href = 'login.html';
+                };
+            } else {
+                authLink.textContent = 'Login';
+                authLink.href = 'login.html';
+                authLink.onclick = null;
+            }
+        }
+        
+        checkAuth();
+    </script>
+</body>
+</html>

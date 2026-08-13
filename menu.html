@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YADA HOTEL - Menu</title>
+    <link rel="stylesheet" href="J.css/style.css">
+    <style>
+        .menu-section {
+            margin: 30px 0;
+        }
+        .menu-section h2 {
+            font-family: 'Playfair Display', serif;
+            color: #1a1a2e;
+            border-bottom: 3px solid #e6b800;
+            padding-bottom: 15px;
+            font-size: 28px;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .menu-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .menu-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+        }
+        .menu-item .emoji {
+            font-size: 60px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        .menu-item .name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            font-family: 'Playfair Display', serif;
+        }
+        .menu-item .price {
+            color: #e6b800;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        .menu-item .desc {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .menu-item .btn-small {
+            padding: 10px 25px;
+            font-size: 14px;
+            border-radius: 30px;
+        }
+        .cart-badge {
+            background: #ff4444;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 5px;
+            font-weight: 700;
+        }
+        .order-summary {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 20px;
+            margin-top: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .order-summary h3 {
+            font-family: 'Playfair Display', serif;
+            color: #1a1a2e;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 2px solid #f0f0f0;
+            font-weight: 500;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .order-total {
+            font-size: 24px;
+            font-weight: 700;
+            color: #e6b800;
+            text-align: right;
+            padding: 20px 0 10px 0;
+            border-top: 2px solid #f0f0f0;
+        }
+        .alert-fixed {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 350px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            font-weight: 500;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .clear-cart-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .clear-cart-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            .order-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 5px;
+            }
+            .alert-fixed {
+                top: 100px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">🏨 YADA HOTEL</a>
+        <div class="navbar-links">
+            <a href="index.html">Home</a>
+            <a href="rooms.html">Rooms</a>
+            <a href="menu.html">Menu</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="#" id="authLink">Login</a>
+            <a href="cart.html" class="cart-link">🛒 Cart <span id="cartCount" class="cart-badge">0</span></a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>🍽️ YADA Restaurant & Bar</h1>
+            <p>Delicious food and refreshing drinks, served with love.</p>
+        </div>
+
+        <!-- FOOD SECTION -->
+        <div class="menu-section">
+            <div class="section-header">
+                <h2>🍔 Food Menu</h2>
+            </div>
+            <div class="menu-grid" id="foodMenu">
+                <!-- Food items will be loaded here -->
+            </div>
+        </div>
+
+        <!-- DRINKS SECTION -->
+        <div class="menu-section">
+            <div class="section-header">
+                <h2>🥤 Drinks Menu</h2>
+            </div>
+            <div class="menu-grid" id="drinksMenu">
+                <!-- Drinks will be loaded here -->
+            </div>
+        </div>
+
+        <!-- CURRENT ORDER -->
+        <div class="order-summary" id="orderSummary" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h3>📦 Your Order</h3>
+                <button onclick="clearCart()" class="clear-cart-btn">🗑️ Clear Cart</button>
+            </div>
+            <div id="orderItems"></div>
+            <div class="order-total">💰 Total: <span id="orderTotal">0</span> ETB</div>
+            <button onclick="placeOrder()" class="btn btn-gold" style="width:100%; padding: 18px; font-size: 20px; margin-top: 10px;">
+                ✅ Place Order
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5000/api';
+        
+        const menuItems = {
+            food: [
+                { id: 1, name: 'Yada Special Burger', price: 450, emoji: '🍔', desc: 'Juicy beef with cheese and special sauce' },
+                { id: 2, name: 'Pizza', price: 550, emoji: '🍕', desc: 'Italian style with fresh toppings' },
+                { id: 3, name: 'Pasta', price: 400, emoji: '🍝', desc: 'Creamy pasta with garlic bread' },
+                { id: 4, name: 'Grilled Chicken', price: 650, emoji: '🍗', desc: 'Marinated chicken with vegetables' },
+                { id: 5, name: 'Special Rice', price: 350, emoji: '🍚', desc: 'Fragrant rice with spices' },
+                { id: 6, name: 'Salad', price: 300, emoji: '🥗', desc: 'Fresh garden salad with dressing' }
+            ],
+            drinks: [
+                { id: 7, name: 'Coca-Cola', price: 80, emoji: '🥤', desc: 'Classic refreshing cola' },
+                { id: 8, name: 'Fresh Juice', price: 150, emoji: '🧃', desc: 'Freshly squeezed fruit juice' },
+                { id: 9, name: 'Ethiopian Coffee', price: 120, emoji: '☕', desc: 'Traditional Ethiopian coffee' },
+                { id: 10, name: 'Tea', price: 80, emoji: '🍵', desc: 'Hot or iced tea' },
+                { id: 11, name: 'Mineral Water', price: 50, emoji: '💧', desc: 'Pure spring water' },
+                { id: 12, name: 'Wine', price: 300, emoji: '🍷', desc: 'Selected red or white wine' }
+            ]
+        };
+
+        let cart = [];
+
+        function checkAuth() {
+            const user = localStorage.getItem('user');
+            const authLink = document.getElementById('authLink');
+            
+            if (user) {
+                authLink.textContent = 'Logout';
+                authLink.href = '#';
+                authLink.onclick = function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('user');
+                    window.location.href = 'login.html';
+                };
+            } else {
+                authLink.textContent = 'Login';
+                authLink.href = 'login.html';
+                authLink.onclick = null;
+            }
+        }
+
+        function displayMenu() {
+            const foodContainer = document.getElementById('foodMenu');
+            foodContainer.innerHTML = '';
+            menuItems.food.forEach(item => {
+                foodContainer.innerHTML += `
+                    <div class="menu-item">
+                        <span class="emoji">${item.emoji}</span>
+                        <div class="name">${item.name}</div>
+                        <div class="price">${item.price} ETB</div>
+                        <div class="desc">${item.desc}</div>
+                        <button onclick="addToCart(${item.id})" class="btn btn-gold btn-small">Add to Cart</button>
+                    </div>
+                `;
+            });
+
+            const drinksContainer = document.getElementById('drinksMenu');
+            drinksContainer.innerHTML = '';
+            menuItems.drinks.forEach(item => {
+                drinksContainer.innerHTML += `
+                    <div class="menu-item">
+                        <span class="emoji">${item.emoji}</span>
+                        <div class="name">${item.name}</div>
+                        <div class="price">${item.price} ETB</div>
+                        <div class="desc">${item.desc}</div>
+                        <button onclick="addToCart(${item.id})" class="btn btn-gold btn-small">Add to Cart</button>
+                    </div>
+                `;
+            });
+        }
+
+        function addToCart(itemId) {
+            let item = menuItems.food.find(i => i.id === itemId);
+            if (!item) {
+                item = menuItems.drinks.find(i => i.id === itemId);
+            }
+            
+            if (item) {
+                const existing = cart.find(i => i.id === itemId);
+                if (existing) {
+                    existing.quantity += 1;
+                } else {
+                    cart.push({ ...item, quantity: 1 });
+                }
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateCart();
+                showAlert(`✅ Added ${item.name} to cart!`, 'success');
+            }
+        }
+
+        function clearCart() {
+            if (cart.length === 0) return;
+            if (confirm('Are you sure you want to clear your cart?')) {
+                cart = [];
+                localStorage.setItem('cart', JSON.stringify(cart));
+                updateCart();
+                showAlert('🗑️ Cart cleared!', 'success');
+            }
+        }
+
+        function updateCart() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+
+            const orderSummary = document.getElementById('orderSummary');
+            const orderItems = document.getElementById('orderItems');
+            const orderTotal = document.getElementById('orderTotal');
+
+            if (cart.length === 0) {
+                orderSummary.style.display = 'none';
+                return;
+            }
+
+            orderSummary.style.display = 'block';
+            let html = '';
+            let total = 0;
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+                html += `
+                    <div class="order-item">
+                        <span>${item.emoji} ${item.name} x ${item.quantity}</span>
+                        <span>${subtotal} ETB</span>
+                    </div>
+                `;
+            });
+            orderItems.innerHTML = html;
+            orderTotal.textContent = total;
+        }
+
+        function placeOrder() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                showAlert('Please login first!', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+
+            const orderText = cart.map(item => `${item.emoji} ${item.name} x ${item.quantity}`).join('\n');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            alert(`📦 Order Placed!\n\n${orderText}\n\n💰 Total: ${total} ETB\n\nThank you for ordering at YADA Hotel!`);
+            
+            cart = [];
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCart();
+            showAlert('✅ Order placed successfully!', 'success');
+        }
+
+        function showAlert(message, type) {
+            const existingAlerts = document.querySelectorAll('.alert-fixed');
+            existingAlerts.forEach(el => el.remove());
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-fixed`;
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        const savedCart = localStorage.getItem('cart');
+        if (savedCart) {
+            try {
+                cart = JSON.parse(savedCart);
+            } catch(e) {
+                cart = [];
+            }
+        }
+
+        checkAuth();
+        displayMenu();
+        updateCart();
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                const saved = localStorage.getItem('cart');
+                if (saved) {
+                    try {
+                        cart = JSON.parse(saved);
+                        updateCart();
+                    } catch(e) {
+                        cart = [];
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
