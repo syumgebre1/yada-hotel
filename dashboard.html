@@ -34,13 +34,14 @@
         </div>
 
         <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px;">
-            <a href="rooms.html" class="btn btn-gold">🛏️ Book a Room</a>
+            <a href="rooms.html" class="btn btn-blue">🛏️ Book a Room</a>
             <a href="menu.html" class="btn btn-primary">🍽️ Order Food</a>
             <a href="#" class="btn btn-danger" id="logoutBtn">🚪 Logout</a>
         </div>
     </div>
 
     <script>
+        // ⭐⭐⭐ FIXED: Use 127.0.0.1 with credentials ⭐⭐⭐
         const API_URL = 'http://127.0.0.1:5000/api';
         
         function checkAuth() {
@@ -72,19 +73,27 @@
                 
                 console.log('📡 Fetching bookings from:', API_URL + '/my-bookings');
                 
+                // ⭐⭐⭐ IMPORTANT: credentials: 'include' sends the session cookie ⭐⭐⭐
                 const response = await fetch(`${API_URL}/my-bookings`, {
                     method: 'GET',
                     credentials: 'include',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     }
                 });
                 
                 console.log('📊 Response status:', response.status);
+                console.log('📊 Response:', response);
                 
                 if (response.status === 401) {
                     localStorage.removeItem('user');
                     container.innerHTML = '<p style="color: #e74c3c;">❌ Session expired. Please <a href="login.html">login again</a>.</p>';
+                    return;
+                }
+                
+                if (response.status === 405) {
+                    container.innerHTML = '<p style="color: #e74c3c;">❌ API method not allowed. Check backend route.</p>';
                     return;
                 }
                 
@@ -109,7 +118,7 @@
                             <p><strong>🛏️ Room:</strong> ${booking.room_number} (${booking.room_type})</p>
                             <p><strong>👤 Guest:</strong> ${booking.guest_name}</p>
                             <p><strong>📅 Check-in:</strong> ${booking.check_in} | <strong>Check-out:</strong> ${booking.check_out}</p>
-                            <p><strong>💰 Total:</strong> <span style="color: #e6b800; font-weight: bold; font-size: 18px;">${booking.total_price.toLocaleString()} ETB</span></p>
+                            <p><strong>💰 Total:</strong> <span style="color: #2a5a8a; font-weight: bold; font-size: 18px;">${booking.total_price.toLocaleString()} ETB</span></p>
                             <p><span class="booking-status ${statusClass}">${statusText}</span></p>
                             ${booking.status === 'confirmed' ? 
                                 `<button onclick="cancelBooking(${booking.id})" class="btn btn-danger" style="margin-top: 10px;">❌ Cancel Booking</button>` : 
@@ -126,6 +135,7 @@
                 container.innerHTML = `
                     <p style="color: #e74c3c;">❌ Failed to fetch</p>
                     <p style="color: #7f8c8d; font-size: 14px; margin-top: 10px;">Make sure the backend is running in Termux.</p>
+                    <p style="color: #7f8c8d; font-size: 12px; margin-top: 5px;">Run: cd ~/yada_hotel_backend && python app.py</p>
                     <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 15px;">🔄 Retry</button>
                 `;
             }

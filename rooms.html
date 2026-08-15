@@ -52,8 +52,11 @@
         
         async function loadRooms() {
             try {
+                console.log('📡 Fetching rooms from:', API_URL + '/rooms');
+                
                 const response = await fetch(`${API_URL}/rooms`);
                 const rooms = await response.json();
+                console.log('📋 Rooms loaded:', rooms.length);
                 
                 const container = document.getElementById('roomContainer');
                 container.innerHTML = '';
@@ -78,8 +81,8 @@
                     container.appendChild(card);
                 });
             } catch (error) {
+                console.error('❌ Error loading rooms:', error);
                 showAlert('Failed to load rooms. Make sure the server is running.', 'error');
-                console.error('Error:', error);
             }
         }
         

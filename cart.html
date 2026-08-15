@@ -3,18 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YADA HOTEL - Cart</title>
+    <title>YADA HOTEL - Order Cart</title>
     <link rel="stylesheet" href="J.css/style.css">
     <style>
+        .cart-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
         .cart-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
+            padding: 20px 0;
             border-bottom: 2px solid #f0f0f0;
         }
         .cart-item:last-child {
             border-bottom: none;
+        }
+        .cart-item-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .cart-item-emoji {
+            font-size: 40px;
+            background: #f8f4e8;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cart-item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .cart-item-price {
+            color: #7f8c8d;
+            font-size: 14px;
         }
         .cart-total {
             font-size: 28px;
@@ -22,11 +50,17 @@
             color: #e6b800;
             text-align: right;
             padding: 20px 0;
+            border-top: 3px solid #e6b800;
         }
         .empty-cart {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: #7f8c8d;
+        }
+        .empty-cart .big-icon {
+            font-size: 80px;
+            display: block;
+            margin-bottom: 20px;
         }
         .empty-cart h3 {
             font-family: 'Playfair Display', serif;
@@ -37,22 +71,41 @@
         .quantity-control {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
         .quantity-control button {
             padding: 5px 15px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 18px;
             cursor: pointer;
+            transition: all 0.3s;
         }
         .btn-minus {
-            background: #e74c3c;
-            color: white;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn-minus:hover {
+            background: #f5c6cb;
         }
         .btn-plus {
-            background: #2ecc71;
-            color: white;
+            background: #d4edda;
+            color: #155724;
+        }
+        .btn-plus:hover {
+            background: #c3e6cb;
+        }
+        .btn-remove {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: all 0.3s;
+        }
+        .btn-remove:hover {
+            transform: scale(1.2);
         }
         .cart-actions {
             display: flex;
@@ -64,6 +117,40 @@
             flex: 1;
             text-align: center;
             min-width: 120px;
+            padding: 14px 20px;
+            font-size: 16px;
+        }
+        .order-summary-box {
+            background: #f8f4e8;
+            padding: 25px;
+            border-radius: 16px;
+            margin-top: 20px;
+        }
+        .order-summary-box h3 {
+            font-family: 'Playfair Display', serif;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+        }
+        .order-summary-box .total {
+            font-size: 24px;
+            font-weight: 700;
+            color: #e6b800;
+        }
+        @media (max-width: 768px) {
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .cart-item-info {
+                width: 100%;
+            }
+            .quantity-control {
+                margin-left: auto;
+            }
+            .cart-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -79,9 +166,10 @@
         </div>
     </nav>
 
-    <div class="container">
-        <div class="hero" style="padding: 20px;">
-            <h1 style="font-size: 32px;">🛒 Your Cart</h1>
+    <div class="container cart-container">
+        <div class="hero" style="padding: 30px 20px;">
+            <h1 style="font-size: 32px;">🍽️ Order Cart</h1>
+            <p>Review your food and drink orders from YADA Restaurant</p>
         </div>
         <div id="cartItems"></div>
     </div>
@@ -114,16 +202,17 @@
             if (cart.length === 0) {
                 container.innerHTML = `
                     <div class="empty-cart">
-                        <h3>🛒 Empty Cart</h3>
-                        <p>Your cart is empty. Add some delicious food or drinks!</p>
+                        <span class="big-icon">🍽️</span>
+                        <h3>Your Order Cart is Empty</h3>
+                        <p>Browse our menu and add some delicious food or drinks!</p>
                         <br>
-                        <a href="menu.html" class="btn btn-gold">Browse Menu</a>
+                        <a href="menu.html" class="btn btn-gold" style="padding: 14px 40px;">📋 View Menu</a>
                     </div>
                 `;
                 return;
             }
 
-            let html = '<div class="card">';
+            let html = '<div class="order-summary-box"><h3>📋 Your Order</h3>';
             let total = 0;
             
             cart.forEach((item, index) => {
@@ -131,16 +220,20 @@
                 total += subtotal;
                 html += `
                     <div class="cart-item">
-                        <div>
-                            <span style="font-size: 30px;">${item.emoji}</span>
-                            <strong>${item.name}</strong>
-                            <span style="color: #7f8c8d; margin-left: 10px;">${item.price} ETB</span>
+                        <div class="cart-item-info">
+                            <div class="cart-item-emoji">${item.emoji}</div>
+                            <div>
+                                <div class="cart-item-name">${item.name}</div>
+                                <div class="cart-item-price">${item.price} ETB × ${item.quantity}</div>
+                            </div>
                         </div>
-                        <div class="quantity-control">
-                            <button class="btn-minus" onclick="updateQuantity(${index}, -1)">−</button>
-                            <span style="font-size: 18px; min-width: 30px; text-align: center; font-weight: 600;">${item.quantity}</span>
-                            <button class="btn-plus" onclick="updateQuantity(${index}, 1)">+</button>
-                            <button onclick="removeItem(${index})" style="margin-left: 15px; background: #e74c3c; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer;">✕</button>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="quantity-control">
+                                <button class="btn-minus" onclick="updateQuantity(${index}, -1)">−</button>
+                                <span style="font-size: 18px; min-width: 30px; text-align: center; font-weight: 600;">${item.quantity}</span>
+                                <button class="btn-plus" onclick="updateQuantity(${index}, 1)">+</button>
+                            </div>
+                            <button class="btn-remove" onclick="removeItem(${index})">✕</button>
                         </div>
                     </div>
                 `;
@@ -149,8 +242,8 @@
             html += `
                 <div class="cart-total">💰 Total: ${total} ETB</div>
                 <div class="cart-actions">
-                    <a href="menu.html" class="btn btn-primary">Continue Shopping</a>
-                    <button onclick="clearCart()" class="btn btn-danger">🗑️ Clear Cart</button>
+                    <a href="menu.html" class="btn btn-primary">📋 Continue Shopping</a>
+                    <button onclick="clearCart()" class="btn btn-danger">🗑️ Clear Order</button>
                     <button onclick="placeOrder()" class="btn btn-gold" style="flex: 2;">✅ Place Order</button>
                 </div>
             </div>`;
@@ -175,7 +268,7 @@
 
         function clearCart() {
             if (cart.length === 0) return;
-            if (confirm('Are you sure you want to clear your cart?')) {
+            if (confirm('Clear your entire order?')) {
                 cart = [];
                 localStorage.setItem('cart', JSON.stringify(cart));
                 renderCart();
@@ -185,12 +278,12 @@
         function placeOrder() {
             const user = localStorage.getItem('user');
             if (!user) {
-                alert('Please login first!');
+                alert('Please login first to place an order.');
                 window.location.href = 'login.html';
                 return;
             }
 
-            const orderText = cart.map(item => `${item.emoji} ${item.name} x ${item.quantity}`).join('\n');
+            const orderText = cart.map(item => `${item.emoji} ${item.name} × ${item.quantity}`).join('\n');
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
             alert(`📦 Order Placed!\n\n${orderText}\n\n💰 Total: ${total} ETB\n\nThank you for ordering at YADA Hotel!`);

@@ -58,8 +58,9 @@
     </div>
 
     <script>
-        // ⭐⭐⭐ USING YOUR IP ADDRESS ⭐⭐⭐
-        const API_URL = 'http://127.0.0.1:5000/api';        
+        // ⭐⭐⭐ FIXED: Using 127.0.0.1 ⭐⭐⭐
+        const API_URL = 'http://127.0.0.1:5000/api';
+        
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -90,7 +91,6 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    credentials: 'include',
                     body: JSON.stringify({ username, email, password })
                 });
                 

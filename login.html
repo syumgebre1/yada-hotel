@@ -20,7 +20,7 @@
     <div class="container">
         <div style="max-width: 400px; margin: 40px auto;">
             <div class="card">
-                <h2 style="text-align: center; color: #1a1a2e;">🔐 Login</h2>
+                <h2 style="text-align: center; color: #1a3a5c;">🔐 Login</h2>
                 
                 <div id="alertMessage"></div>
                 
@@ -35,7 +35,7 @@
                         <input type="password" id="password" placeholder="Enter password" required>
                     </div>
                     
-                    <button type="submit" class="btn btn-gold" style="width: 100%; padding: 12px;">
+                    <button type="submit" class="btn btn-blue" style="width: 100%; padding: 12px;">
                         Login
                     </button>
                 </form>
@@ -48,7 +48,7 @@
     </div>
 
     <script>
-        // ⭐⭐⭐ USING YOUR IP ADDRESS ⭐⭐⭐
+        // ⭐⭐⭐ FIXED: Using 127.0.0.1 with credentials ⭐⭐⭐
         const API_URL = 'http://127.0.0.1:5000/api';
         
         function checkAlreadyLoggedIn() {
@@ -84,7 +84,9 @@
                 submitBtn.disabled = true;
                 
                 console.log('📡 Sending login to:', API_URL + '/login');
+                console.log('📡 Username:', username);
                 
+                // ⭐⭐⭐ IMPORTANT: credentials: 'include' saves the session cookie ⭐⭐⭐
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
                     headers: {
@@ -98,6 +100,7 @@
                 console.log('📊 Response:', response.status, data);
                 
                 if (response.ok) {
+                    // Save user data to localStorage
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
                     showAlert('✅ Login successful! Redirecting...', 'success');
@@ -130,6 +133,7 @@
             }, 5000);
         }
         
+        // Check on page load
         checkAlreadyLoggedIn();
     </script>
 </body>

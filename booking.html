@@ -67,6 +67,7 @@
     </div>
 
     <script>
+        // ⭐⭐⭐ USING 127.0.0.1 ⭐⭐⭐
         const API_URL = 'http://127.0.0.1:5000/api';
         
         function checkAuth() {
@@ -98,13 +99,18 @@
             }
             
             try {
+                console.log('📡 Fetching room:', API_URL + '/rooms/' + roomId);
+                
                 const response = await fetch(`${API_URL}/rooms/${roomId}`);
+                
+                console.log('📊 Response status:', response.status);
                 
                 if (!response.ok) {
                     throw new Error('Room not found');
                 }
                 
                 const room = await response.json();
+                console.log('📋 Room data:', room);
                 
                 document.getElementById('roomInfo').textContent = `Room ${room.room_number} - ${room.room_type}`;
                 document.getElementById('displayRoomType').textContent = room.room_type;
@@ -114,8 +120,8 @@
                 document.getElementById('bookingForm').dataset.price = room.price;
                 
             } catch (error) {
-                showAlert('Failed to load room details', 'error');
-                console.error('Error:', error);
+                console.error('❌ Error:', error);
+                showAlert('Failed to load room details. Make sure backend is running.', 'error');
                 document.getElementById('roomInfo').textContent = '❌ Error loading room';
                 document.getElementById('roomInfo').style.color = 'red';
             }
@@ -179,6 +185,14 @@
                 submitBtn.textContent = 'Processing...';
                 submitBtn.disabled = true;
                 
+                console.log('📡 Sending booking:', {
+                    room_id: parseInt(roomId),
+                    guest_name: guestName,
+                    guest_phone: guestPhone,
+                    check_in: checkIn,
+                    check_out: checkOut
+                });
+                
                 const response = await fetch(`${API_URL}/bookings`, {
                     method: 'POST',
                     headers: {
@@ -195,6 +209,7 @@
                 });
                 
                 const data = await response.json();
+                console.log('📊 Response:', response.status, data);
                 
                 if (response.ok) {
                     showAlert(`✅ Booking confirmed! Total: ${data.total_price} ETB for ${data.nights} nights`, 'success');
@@ -208,8 +223,8 @@
                     submitBtn.disabled = false;
                 }
             } catch (error) {
+                console.error('❌ Error:', error);
                 showAlert('Connection error. Make sure the server is running.', 'error');
-                console.error('Error:', error);
                 const submitBtn = document.querySelector('button[type="submit"]');
                 submitBtn.textContent = 'Confirm Booking';
                 submitBtn.disabled = false;
@@ -233,6 +248,7 @@
         checkAuth();
         loadRoomDetails();
         
+        // Set default dates
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
