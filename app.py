@@ -50,7 +50,6 @@ login_manager.login_message = None
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
-# ===== SECURITY DECORATORS =====
 def api_login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -59,7 +58,6 @@ def api_login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# NEW: Admin required decorator to protect backend routes
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -113,7 +111,6 @@ def init_db():
         create_data()
         print("✅ Database initialized!")
 
-# ===== HTML ROUTES =====
 @app.route('/')
 def home(): return render_template('index.html')
 @app.route('/rooms')
@@ -137,7 +134,6 @@ def contact_page(): return render_template('contact.html')
 @app.route('/restaurant')
 def restaurant_page(): return render_template('restaurant.html')
 
-# ===== ERROR HANDLERS =====
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html'), 404
@@ -146,7 +142,6 @@ def not_found(e):
 def server_error(e):
     return render_template('500.html'), 500
 
-# ===== USER ROUTES =====
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS': return '', 200
@@ -198,7 +193,6 @@ def change_password():
     db.session.commit()
     return jsonify({'message': 'Password changed successfully'}), 200
 
-# ===== PUBLIC ROUTES =====
 @app.route('/api/rooms', methods=['GET'])
 def get_rooms():
     rooms = Room.query.all()
@@ -208,6 +202,15 @@ def get_rooms():
         if not images: images = [r.image_filename]
         rooms_data.append({'id': r.id, 'room_number': r.room_number, 'room_type': r.room_type, 'price': r.price, 'description': r.description, 'available': r.available, 'image_filename': r.image_filename, 'images': images, 'is_featured': r.is_featured, 'amenities': r.amenities})
     return jsonify(rooms_data), 200
+
+# ===== FIXED: RESTORED SINGLE ROOM ROUTE =====
+@app.route('/api/rooms/<int:room_id>', methods=['GET'])
+def get_room(room_id):
+    room = db.session.get(Room, room_id)
+    if not room: return jsonify({'error': 'Room not found'}), 404
+    images = [img.image_filename for img in room.images]
+    if not images: images = [room.image_filename]
+    return jsonify({'id': room.id, 'room_number': room.room_number, 'room_type': room.room_type, 'price': room.price, 'description': room.description, 'available': room.available, 'image_filename': room.image_filename, 'images': images, 'is_featured': room.is_featured, 'amenities': room.amenities}), 200
 
 @app.route('/api/menu', methods=['GET'])
 def get_menu():
@@ -225,7 +228,6 @@ def check_availability():
     data = request.get_json()
     check_in = datetime.strptime(data['check_in'], '%Y-%m-%d')
     check_out = datetime.strptime(data['check_out'], '%Y-%m-%d')
-    # Fixed logic: Only confirmed bookings overlap
     overlapping_bookings = Booking.query.filter(Booking.status == 'confirmed', Booking.check_in < check_out, Booking.check_out > check_in).all()
     booked_room_ids = [b.room_id for b in overlapping_bookings]
     available_rooms = Room.query.filter(Room.id.notin_(booked_room_ids)).all()
@@ -236,7 +238,6 @@ def check_availability():
         rooms_data.append({'id': r.id, 'room_number': r.room_number, 'room_type': r.room_type, 'price': r.price, 'description': r.description, 'image_filename': r.image_filename, 'images': images, 'is_featured': r.is_featured, 'amenities': r.amenities})
     return jsonify(rooms_data), 200
 
-# ===== AUTHENTICATED USER ROUTES =====
 @app.route('/api/bookings', methods=['POST'])
 @api_login_required
 def create_booking():
@@ -274,7 +275,6 @@ def cancel_booking(booking_id):
     db.session.commit()
     return jsonify({'message': 'Booking cancelled successfully'}), 200
 
-# ===== CART ROUTES =====
 @app.route('/api/cart', methods=['GET'])
 @api_login_required
 def get_cart():
@@ -341,7 +341,6 @@ def book_table():
     db.session.commit()
     return jsonify({'message': 'Table reservation requested!'}), 201
 
-# ===== ADMIN ROUTES (Protected by admin_required) =====
 @app.route('/api/admin/stats', methods=['GET'])
 @admin_required
 def admin_stats():
