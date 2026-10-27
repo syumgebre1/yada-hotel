@@ -470,7 +470,8 @@ def admin_guests():
     return jsonify([{'id': u.id, 'username': u.username, 'email': u.email, 'total_bookings': Booking.query.filter_by(user_id=u.id).count()} for u in users]), 200
 
 @app.route('/api/admin/settings', methods=['GET', 'PUT'])
-@admin_requireddef admin_settings():
+@admin_required
+def admin_settings():
     s = SiteSetting.query.first()
     if request.method == 'GET':
         return jsonify({'whatsapp': s.whatsapp, 'telegram': s.telegram, 'gmail': s.gmail, 'address': s.address}), 200
