@@ -110,7 +110,7 @@ def init_db():
     with app.app_context():
         db.create_all()
         create_data()
-        print("✅ Database initialized!")
+        print("Database initialized!")
 
 # ===== HTML PAGE ROUTES =====
 @app.route('/')
@@ -257,7 +257,7 @@ def create_booking():
     booking = Booking(user_id=current_user.id, room_id=room.id, guest_name=data['guest_name'], guest_phone=data.get('guest_phone', ''), check_in=check_in, check_out=check_out, total_price=total, status='confirmed')
     db.session.add(booking)
     db.session.commit()
-    print(f"\n📧 [SIMULATED EMAIL] To: {current_user.email}\nSubject: Booking Confirmed - Room {room.room_number}\nBody: Room {room.room_number} booked from {data['check_in']} to {data['check_out']}. Total: {total} ETB\n")
+    print(f"\n[SIMULATED EMAIL] To: {current_user.email}\nSubject: Booking Confirmed - Room {room.room_number}\nBody: Room {room.room_number} booked from {data['check_in']} to {data['check_out']}. Total: {total} ETB\n")
     return jsonify({'message': 'Booking confirmed!', 'booking_id': booking.id, 'total_price': total, 'nights': nights}), 201
 
 @app.route('/api/my-bookings', methods=['GET', 'OPTIONS'])
@@ -307,7 +307,7 @@ def remove_from_cart(cart_id):
         return jsonify({'message': 'Removed'}), 200
     return jsonify({'error': 'Not found'}), 404
 
-# ===== FIXED: INSTANT CHECKOUT =====
+# ===== FIXED: INSTANT CHECKOUT (NO EMOJIS) =====
 @app.route('/api/cart/checkout', methods=['POST'])
 @api_login_required
 def checkout():
@@ -324,7 +324,7 @@ def checkout():
     db.session.commit()
     
     # Print email instantly instead of trying to send it and hanging
-    print(f"\n📧 [SIMULATED FOOD RECEIPT] To: {current_user.email}")
+    print(f"\n[SIMULATED FOOD RECEIPT] To: {current_user.email}")
     print(f"Order ID: #{order.id} | Total: {total} ETB | Room: {room_number if room_number else 'Takeaway'}\n")
     
     return jsonify({'message': 'Order placed successfully!', 'total': total}), 201
