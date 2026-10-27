@@ -111,6 +111,7 @@ def init_db():
         create_data()
         print("✅ Database initialized!")
 
+# ===== HTML PAGE ROUTES =====
 @app.route('/')
 def home(): return render_template('index.html')
 @app.route('/rooms')
@@ -134,6 +135,7 @@ def contact_page(): return render_template('contact.html')
 @app.route('/restaurant')
 def restaurant_page(): return render_template('restaurant.html')
 
+# ===== ERROR HANDLERS =====
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html'), 404
@@ -142,6 +144,7 @@ def not_found(e):
 def server_error(e):
     return render_template('500.html'), 500
 
+# ===== AUTHENTICATION APIs =====
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS': return '', 200
@@ -193,6 +196,7 @@ def change_password():
     db.session.commit()
     return jsonify({'message': 'Password changed successfully'}), 200
 
+# ===== ROOM APIs =====
 @app.route('/api/rooms', methods=['GET'])
 def get_rooms():
     rooms = Room.query.all()
@@ -237,6 +241,7 @@ def check_availability():
         rooms_data.append({'id': r.id, 'room_number': r.room_number, 'room_type': r.room_type, 'price': r.price, 'description': r.description, 'image_filename': r.image_filename, 'images': images, 'is_featured': r.is_featured, 'amenities': r.amenities})
     return jsonify(rooms_data), 200
 
+# ===== BOOKING APIs =====
 @app.route('/api/bookings', methods=['POST'])
 @api_login_required
 def create_booking():
@@ -274,6 +279,7 @@ def cancel_booking(booking_id):
     db.session.commit()
     return jsonify({'message': 'Booking cancelled successfully'}), 200
 
+# ===== CART APIs =====
 @app.route('/api/cart', methods=['GET'])
 @api_login_required
 def get_cart():
@@ -328,6 +334,7 @@ def checkout():
     
     return jsonify({'message': 'Order placed successfully!', 'total': total}), 201
 
+# ===== TABLE RESERVATION APIs =====
 @app.route('/api/table-reservations', methods=['POST'])
 @api_login_required
 def book_table():
@@ -340,6 +347,7 @@ def book_table():
     db.session.commit()
     return jsonify({'message': 'Table reservation requested!'}), 201
 
+# ===== ADMIN APIs =====
 @app.route('/api/admin/stats', methods=['GET'])
 @admin_required
 def admin_stats():
@@ -549,6 +557,7 @@ def kitchen_ticket(order_id):
     buffer.seek(0)
     return Response(buffer.getvalue(), mimetype="application/pdf", headers={"Content-Disposition": f"attachment; filename=Ticket_{order.id}.pdf"})
 
+# ===== CONTACT API =====
 @app.route('/api/contact', methods=['POST'])
 def submit_contact():
     data = request.get_json()
@@ -557,6 +566,7 @@ def submit_contact():
     db.session.commit()
     return jsonify({'message': 'Message sent successfully!'}), 201
 
+# ===== START THE APP =====
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
