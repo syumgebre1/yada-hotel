@@ -296,5 +296,22 @@
         checkAuth();
         renderCart();
     </script>
+<script>
+        // Dark Mode Logic
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.classList.add("dark-mode");
+        }
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            const icon = document.querySelector("#themeBtn i");
+            if(icon) icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        }
+        window.addEventListener("DOMContentLoaded", () => {
+            const icon = document.querySelector("#themeBtn i");
+            if(icon </body></body> document.body.classList.contains("dark-mode")) icon.className = "fa-solid fa-sun";
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,223 @@
+/* ===== YADA HOTEL - MODERN DESIGN ===== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap');
+
+/* Light Theme Variables (Default) */
+:root {
+    --bg-color: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    --text-color: #2d2d2d;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --navbar-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    --navbar-text: #ffffff;
+    --input-bg: #ffffff;
+    --input-border: #e0e0e0;
+    --input-text: #2d2d2d;
+    --card-title: #1a1a2e;
+    --text-muted: #7f8c8d;
+    --border-color: #eef2f7;
+}
+
+/* Dark Theme Variables */
+body.dark-mode {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --navbar-bg: #0a0a0a;
+    --navbar-text: #ffffff;
+    --input-bg: #2d2d2d;
+    --input-border: #444;
+    --input-text: #ffffff;
+    --card-title: #ffffff;
+    --text-muted: #a0a0a0;
+    --border-color: #333;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-color);
+    min-height: 100vh;
+    color: var(--text-color);
+    transition: background 0.3s, color 0.3s;
+}
+
+/* ===== NAVIGATION ===== */
+.navbar {
+    background: var(--navbar-bg);
+    color: var(--navbar-text);
+    padding: 18px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: background 0.3s;
+}
+.navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #e6b800;
+    text-decoration: none;
+    text-shadow: 0 2px 10px rgba(230, 184, 0, 0.3);
+    transition: transform 0.3s;
+}
+.navbar-brand:hover { transform: scale(1.05); }
+.navbar-links { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+.navbar-links a {
+    color: var(--navbar-text);
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 25px;
+    transition: all 0.3s;
+    font-weight: 500;
+    font-size: 14px;
+    position: relative;
+}
+.navbar-links a:hover {
+    background: rgba(230, 184, 0, 0.15);
+    color: #e6b800;
+}
+
+/* ===== CONTAINERS & CARDS ===== */
+.container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+.card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+    transition: all 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12); }
+.card h2, .card h3 { font-family: 'Playfair Display', serif; color: var(--card-title); }
+
+/* ===== ROOM GRID ===== */
+.room-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 20px; }
+.room-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+.room-card h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--card-title); margin-bottom: 10px; }
+.room-card .price { font-size: 28px; font-weight: 700; color: #e6b800; margin: 10px 0; }
+.room-card .available { color: #2ecc71; font-weight: 600; }
+.room-card .unavailable { color: #e74c3c; font-weight: 600; }
+.room-card .room-type { display: inline-block; background: rgba(230, 184, 0, 0.15); color: #e6b800; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+
+/* ===== BUTTONS ===== */
+.btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    font-family: 'Poppins', sans-serif;
+}
+.btn-primary { background: linear-gradient(135deg, #1a1a2e, #2d2d4e); color: white; box-shadow: 0 4px 15px rgba(26, 26, 46, 0.3); }
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(26, 26, 46, 0.4); }
+.btn-gold { background: linear-gradient(135deg, #e6b800, #f5c400); color: #1a1a2e; box-shadow: 0 4px 15px rgba(230, 184, 0, 0.3); }
+.btn-gold:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(230, 184, 0, 0.4); }
+.btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); }
+.btn-danger:hover { transform: translateY(-3px); }
+.btn-small { padding: 8px 20px; font-size: 14px; }
+
+/* ===== FORMS ===== */
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--card-title); }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--input-border);
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s;
+    background: var(--input-bg);
+    color: var(--input-text);
+}
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: #e6b800;
+    box-shadow: 0 0 0 4px rgba(230, 184, 0, 0.1);
+}
+
+/* ===== BOOKING LIST ===== */
+.booking-item { border-bottom: 2px solid var(--border-color); padding: 15px 0; }
+.booking-item:last-child { border-bottom: none; }
+.booking-status { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+.status-confirmed { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+
+/* Dark Mode Toggle Button Style */
+.theme-toggle {
+    background: transparent;
+    border: none;
+    color: var(--navbar-text);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 10px;
+    transition: transform 0.3s;
+}
+.theme-toggle:hover { transform: scale(1.1) rotate(15deg); color: #e6b800; }
+
+/* Fix for Dark Mode Toggle placement */
+.nav-theme-toggle {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 15px;
+    transition: transform 0.3s, color 0.3s;
+}
+.nav-theme-toggle:hover {
+    transform: scale(1.1) rotate(15deg);
+    color: #e6b800;
+}
+
+/* Fix text colors for dark mode cards */
+body.dark-mode .stat-card .number { color: #6ab0e6; }
+body.dark-mode .stat-card .label { color: #e0e0e0; }
+body.dark-mode table th { background: #0a0a0a; color: #e6b800; }
+body.dark-mode table td { border-bottom: 1px solid #333; }
+
+/* ===== WHATSAPP FLOATING BUTTON ===== */
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 30px;
+    right: 30px;
+    background-color: #25d366;
+    color: #FFF;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 30px;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: transform 0.3s;
+}
+.whatsapp-float:hover {
+    transform: scale(1.1);
+    color: #FFF;
+}
