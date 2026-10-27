@@ -307,7 +307,7 @@ def remove_from_cart(cart_id):
         return jsonify({'message': 'Removed'}), 200
     return jsonify({'error': 'Not found'}), 404
 
-# ===== FIXED: INSTANT CHECKOUT (NO EMOJIS) =====
+# ===== INSTANT CHECKOUT (NO EMOJIS) =====
 @app.route('/api/cart/checkout', methods=['POST'])
 @api_login_required
 def checkout():
@@ -323,7 +323,6 @@ def checkout():
     CartItem.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
     
-    # Print email instantly instead of trying to send it and hanging
     print(f"\n[SIMULATED FOOD RECEIPT] To: {current_user.email}")
     print(f"Order ID: #{order.id} | Total: {total} ETB | Room: {room_number if room_number else 'Takeaway'}\n")
     
@@ -375,7 +374,8 @@ def food_receipt(order_id):
     elements.append(Paragraph(f"<b>Food Order Receipt</b>", styles['Heading2']))
     elements.append(Spacer(1, 10))
     
-    data = [['Order ID:', f"#{order.id}"], ['Date:', order.created_at.strftime('%Y-%m-%d %H:%M')], ['Customer:', User.query.get(order.user_id).username],['Room Service:', order.room_number if order.room_number else 'Takeaway'], ['Status:', order.status.upper()]]
+    # FIXED: Use User.query.get to avoid attribute error
+    data = [['Order ID:', f"#{order.id}"], ['Date:', order.created_at.strftime('%Y-%m-%d %H:%M')], ['Customer:', User.query.get(order.user_id).username], ['Room Service:', order.room_number if order.room_number else 'Takeaway'], ['Status:', order.status.upper()]]
     table = Table(data, colWidths=[150, 300])
     table.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), silver),('TEXTCOLOR', (0, 0), (0, -1), colors.black),('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),('GRID', (0, 0), (-1, -1), 1, gold),('PADDING', (0, 0), (-1, -1), 10)]))
     elements.append(table)
@@ -470,8 +470,7 @@ def admin_guests():
     return jsonify([{'id': u.id, 'username': u.username, 'email': u.email, 'total_bookings': Booking.query.filter_by(user_id=u.id).count()} for u in users]), 200
 
 @app.route('/api/admin/settings', methods=['GET', 'PUT'])
-@admin_required
-def admin_settings():
+@admin_requireddef admin_settings():
     s = SiteSetting.query.first()
     if request.method == 'GET':
         return jsonify({'whatsapp': s.whatsapp, 'telegram': s.telegram, 'gmail': s.gmail, 'address': s.address}), 200

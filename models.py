@@ -16,6 +16,8 @@ class User(UserMixin, db.Model):
     bookings = db.relationship('Booking', backref='user', lazy=True)
     reviews = db.relationship('Review', backref='author', lazy=True)
     cart_items = db.relationship('CartItem', backref='user', lazy=True)
+    # NEW: Relationship for food orders
+    food_orders = db.relationship('FoodOrder', backref='user', lazy=True) 
 
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -114,7 +116,6 @@ class TableReservation(db.Model):
     guests = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), default='pending')
 
-# NEW: Gallery Model
 class GalleryImage(db.Model):
     __tablename__ = 'gallery_images'
     id = db.Column(db.Integer, primary_key=True)
