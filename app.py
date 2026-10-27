@@ -374,7 +374,6 @@ def food_receipt(order_id):
     elements.append(Paragraph(f"<b>Food Order Receipt</b>", styles['Heading2']))
     elements.append(Spacer(1, 10))
     
-    # FIXED: Use User.query.get to avoid attribute error
     data = [['Order ID:', f"#{order.id}"], ['Date:', order.created_at.strftime('%Y-%m-%d %H:%M')], ['Customer:', User.query.get(order.user_id).username], ['Room Service:', order.room_number if order.room_number else 'Takeaway'], ['Status:', order.status.upper()]]
     table = Table(data, colWidths=[150, 300])
     table.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), silver),('TEXTCOLOR', (0, 0), (0, -1), colors.black),('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),('GRID', (0, 0), (-1, -1), 1, gold),('PADDING', (0, 0), (-1, -1), 10)]))
