@@ -16,15 +16,24 @@
         .menu-card .category { font-size: 12px; color: #e6b800; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
         .menu-card h3 { margin: 10px 0; color: var(--card-title); font-family: 'Playfair Display', serif; font-size: 22px; }
         .menu-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 15px; flex-grow: 1; }
-        .menu-card .price { font-size: 22px; font-weight: 700; color: #2a5a8a; margin-top: auto; }
+        .menu-card .price { font-size: 22px; font-weight: 700; color: #2a5a8a; margin-top: auto; margin-bottom: 15px; }
         .special-badge { background: #e74c3c; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 10px; width: fit-content; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--card-title); margin: 40px 0 20px 0; border-bottom: 2px solid #e6b800; padding-bottom: 10px; }
         .special-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin: 0 auto; max-width: 800px; }
+        
+        .cart-sidebar { position: fixed; top: 0; right: -400px; width: 350px; height: 100vh; background: var(--card-bg); box-shadow: -5px 0 20px rgba(0,0,0,0.2); z-index: 2000; transition: right 0.3s; display: flex; flex-direction: column; }
+        .cart-sidebar.open { right: 0; }
+        .cart-header { padding: 20px; background: #1a3a5c; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .cart-items { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 10px 0; }
+        .cart-footer { padding: 20px; border-top: 2px solid var(--border-color); }
+        .cart-btn { position: fixed; bottom: 100px; right: 30px; background: #1a3a5c; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1500; }
+        .cart-badge { position: absolute; top: 0; right: 0; background: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="navbar-brand"><i class="fa-solid fa-hotel"></i> YADA HOTEL</a>
+        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
         <div class="navbar-links">
             <a href="/">Home</a>
             <a href="/rooms">Rooms</a>
@@ -39,17 +48,71 @@
         <div class="hero" style="padding: 60px 20px; text-align: center; background: linear-gradient(rgba(26, 58, 92, 0.8), rgba(26, 58, 92, 0.9)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;">
             <h1 style="font-family: 'Playfair Display', serif; font-size: 48px; color: white; margin-bottom: 10px;"><i class="fa-solid fa-utensils"></i> YADA Restaurant</h1>
             <p style="color: #e6b800; font-size: 20px;">Delicious meals prepared with love. Experience the taste of Ethiopia.</p>
+            <button onclick="openTableModal()" class="btn btn-gold" style="margin-top: 20px; font-size: 18px;"><i class="fa-solid fa-chair"></i> Reserve a Table</button>
         </div>
 
-        <!-- Today's Special Section -->
         <div id="specialSection" style="display: none; text-align: center; margin-bottom: 40px;">
             <h2 class="section-title" style="border: none; margin-bottom: 20px;"><i class="fa-solid fa-fire" style="color: #e74c3c;"></i> Today's Special</h2>
             <div id="specialContainer" class="special-container"></div>
         </div>
 
-        <!-- Full Menu Section -->
         <div id="menuContainer"></div>
     </div>
+
+    <!-- CART SIDEBAR -->
+    <div class="cart-btn" onclick="toggleCart()">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <div class="cart-badge" id="cartBadge">0</div>
+    </div>
+
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3><i class="fa-solid fa-cart-shopping"></i> Your Cart</h3>
+            <button onclick="toggleCart()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="cart-items" id="cartItemsContainer">
+            <p style="text-align: center; color: var(--text-muted);">Your cart is empty.</p>
+        </div>
+        <div class="cart-footer">
+            <!-- NEW: Room Service Input -->
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 14px; font-weight: 600;">Deliver to Room (Optional)</label>
+                <input type="text" id="roomServiceInput" placeholder="e.g. 101" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--input-text); margin-top: 5px;">
+            </div>
+            <h3 style="margin-bottom: 15px;">Total: <span id="cartTotal" style="color: #e6b800;">0 ETB</span></h3>
+            <button onclick="checkout()" class="btn btn-gold" style="width: 100%;">Checkout</button>
+        </div>
+    </div>
+
+    <!-- TABLE RESERVATION MODAL -->
+    <div class="modal" id="tableModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; justify-content:center; align-items:center;">
+        <div class="modal-content" style="background:var(--card-bg); padding:30px; border-radius:15px; max-width:400px; width:90%;">
+            <h3 style="margin-bottom: 20px; color: var(--card-title);"><i class="fa-solid fa-chair"></i> Reserve a Table</h3>
+            <form id="tableForm">
+                <div class="form-group"><label>Full Name</label><input type="text" id="tName" required></div>
+                <div class="form-group"><label>Phone</label><input type="tel" id="tPhone" required></div>
+                <div class="form-group"><label>Date</label><input type="date" id="tDate" required></div>
+                <div class="form-group"><label>Time</label><input type="time" id="tTime" required></div>
+                <div class="form-group"><label>Number of Guests</label><input type="number" id="tGuests" min="1" required></div>
+                <button type="submit" class="btn btn-gold" style="width:100%;">Request Reservation</button>
+                <button type="button" onclick="closeTableModal()" class="btn btn-danger" style="width:100%; margin-top:10px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LIVE CHAT WIDGET (Tawk.to Placeholder) -->
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    // This is a test ID so the widget loads. Replace with your own ID later.
+    s1.src='https://embed.tawk.to/65a1b2c3d9e0e10af1ea8f2e/1hk2k9a5p'; 
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
@@ -61,25 +124,32 @@
             const icon = document.querySelector("#themeBtn i");
             if(icon) icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
         }
-        window.addEventListener("DOMContentLoaded", () => {
-            const icon = document.querySelector("#themeBtn i");
-            if(icon && document.body.classList.contains("dark-mode")) icon.className = "fa-solid fa-sun";
-        });
+        function showToast(msg) {
+            Toastify({ text: msg, duration: 3000, close: true, gravity: "top", position: "right", style: { background: "linear-gradient(to right, #00b09b, #96c93d)" } }).showToast();
+        }
+        function showError(msg) {
+            Toastify({ text: msg, duration: 3000, close: true, gravity: "top", position: "right", style: { background: "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
+        }
+
+        function toggleCart() {
+            document.getElementById('cartSidebar').classList.toggle('open');
+            loadCart();
+        }
+
+        function openTableModal() { document.getElementById('tableModal').style.display = 'flex'; }
+        function closeTableModal() { document.getElementById('tableModal').style.display = 'none'; }
 
         async function loadMenu() {
             try {
                 const res = await fetch('/api/menu');
                 const items = await res.json();
-
                 if (items.length === 0) {
                     document.getElementById('menuContainer').innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size: 18px; margin-top: 40px;">Our menu is being updated. Please check back later!</p>';
                     return;
                 }
-                
                 const specials = items.filter(i => i.is_special);
                 const regular = items.filter(i => !i.is_special);
 
-                // Render Specials
                 if (specials.length > 0) {
                     document.getElementById('specialSection').style.display = 'block';
                     const sContainer = document.getElementById('specialContainer');
@@ -93,24 +163,21 @@
                                     <h3>${item.name}</h3>
                                     <p>${item.description || ''}</p>
                                     <div class="price">${item.price.toLocaleString()} ETB</div>
+                                    <button onclick="addToCart(${item.id})" class="btn btn-gold" style="width: 100%;">Add to Cart</button>
                                 </div>
                             </div>
                         `;
                     });
                 }
 
-                // Group Regular Items by Category
                 const categories = [...new Set(regular.map(i => i.category))];
                 const container = document.getElementById('menuContainer');
                 container.innerHTML = '';
-                
                 categories.forEach(category => {
                     const categoryItems = regular.filter(i => i.category === category);
                     container.innerHTML += `<h2 class="section-title">${category}</h2>`;
-                    
                     const grid = document.createElement('div');
                     grid.className = 'menu-grid';
-                    
                     categoryItems.forEach(item => {
                         const img = item.image_filename ? `/static/uploads/${item.image_filename}` : 'https://via.placeholder.com/400x200?text=Food+Image';
                         grid.innerHTML += `
@@ -121,20 +188,105 @@
                                     <h3>${item.name}</h3>
                                     <p>${item.description || ''}</p>
                                     <div class="price">${item.price.toLocaleString()} ETB</div>
+                                    <button onclick="addToCart(${item.id})" class="btn btn-gold" style="width: 100%;">Add to Cart</button>
                                 </div>
                             </div>
                         `;
                     });
                     container.appendChild(grid);
                 });
+            } catch(e) { console.error("Error loading menu:", e); }
+        }
 
-            } catch(e) { 
-                console.error("Error loading menu:", e); 
-                document.getElementById('menuContainer').innerHTML = '<p style="text-align:center; color:red;">Failed to load menu. Check server connection.</p>';
+        async function addToCart(itemId) {
+            const user = localStorage.getItem('user');
+            if(!user) { showError('Please login to order food.'); setTimeout(()=>window.location.href='/login', 1500); return; }
+            
+            const res = await fetch('/api/cart/add', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ menu_item_id: itemId })
+            });
+            if (res.ok) { showToast('Added to cart!'); loadCart(); }
+            else { showError('Failed to add to cart'); }
+        }
+
+        async function loadCart() {
+            const user = localStorage.getItem('user');
+            if(!user) return;
+
+            const res = await fetch('/api/cart', { credentials: 'include' });
+            if (!res.ok) return;
+            const cart = await res.json();
+            
+            const container = document.getElementById('cartItemsContainer');
+            const badge = document.getElementById('cartBadge');
+            const totalEl = document.getElementById('cartTotal');
+            
+            container.innerHTML = '';
+            let total = 0;
+            let count = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Your cart is empty.</p>';
+            } else {
+                cart.forEach(item => {
+                    total += item.price * item.quantity;
+                    count += item.quantity;
+                    container.innerHTML += `
+                        <div class="cart-item">
+                            <div>
+                                <h4>${item.name}</h4>
+                                <p style="font-size: 12px; color: var(--text-muted);">${item.quantity} x ${item.price} ETB</p>
+                            </div>
+                            <button onclick="removeFromCart(${item.id})" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                });
+            }
+            badge.textContent = count;
+            totalEl.textContent = `${total.toLocaleString()} ETB`;
+        }
+
+        async function removeFromCart(cartId) {
+            await fetch(`/api/cart/remove/${cartId}`, { method: 'DELETE', credentials: 'include' });
+            loadCart();
+        }
+
+        async function checkout() {
+            const roomNum = document.getElementById('roomServiceInput').value;
+            const res = await fetch('/api/cart/checkout', { 
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ room_number: roomNum })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`Order placed! Total: ${data.total} ETB`);
+                loadCart();
+                toggleCart();
+                document.getElementById('roomServiceInput').value = '';
+            } else {
+                showError(data.error || 'Checkout failed');
             }
         }
 
+        document.getElementById('tableForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('/api/table-reservations', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({
+                    guest_name: document.getElementById('tName').value,
+                    phone: document.getElementById('tPhone').value,
+                    date: document.getElementById('tDate').value,
+                    time: document.getElementById('tTime').value,
+                    guests: parseInt(document.getElementById('tGuests').value)
+                })
+            });
+            if (res.ok) { showToast('Table requested! We will call you soon.'); closeTableModal(); document.getElementById('tableForm').reset(); }
+            else { showError('Please login first to reserve a table.'); }
+        });
+
         loadMenu();
+        loadCart();
     </script>
 </body>
 </html>

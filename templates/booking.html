@@ -9,16 +9,21 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
+    <!-- NEW: GLOBAL LOADER -->
+    <div id="global-loader">
+        <div class="spinner"></div>
+        <div class="loader-text">Processing your booking...</div>
+    </div>
+
     <nav class="navbar">
-        <a href="/" class="navbar-brand"><i class="fa-solid fa-hotel"></i> YADA HOTEL</a>
+        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
         <div class="navbar-links">
             <a href="/">Home</a>
             <a href="/rooms">Rooms</a>
             <a href="/restaurant">Restaurant</a>
-            <a href="/dashboard">Dashboard</a>
             <a href="/contact">Contact Us</a>
+            <a href="/dashboard">Dashboard</a>
             <a href="/login" id="authLink">Login</a>
-            <select class="lang-select" id="langToggle" onchange="changeLanguage(this.value)" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px; border-radius: 5px; margin-right: 10px; cursor: pointer;"><option value="en" style="color:black;">EN</option><option value="am" style="color:black;">አማ</option></select>
             <button class="nav-theme-toggle" id="themeBtn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
         </div>
     </nav>
@@ -27,29 +32,14 @@
         <div style="max-width: 600px; margin: 40px auto;">
             <div class="card">
                 <h2 style="text-align: center; color: var(--card-title); margin-bottom: 20px;"><i class="fa-regular fa-calendar-check"></i> Complete Your Booking</h2>
-                
                 <form id="bookingForm">
                     <input type="hidden" id="roomId" name="room_id">
-                    <div class="form-group">
-                        <label for="guestName">Full Name</label>
-                        <input type="text" id="guestName" placeholder="Enter your full name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="guestPhone">Phone Number</label>
-                        <input type="tel" id="guestPhone" placeholder="Enter your phone number" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="checkIn">Check-in Date</label>
-                        <input type="date" id="checkIn" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="checkOut">Check-out Date</label>
-                        <input type="date" id="checkOut" required>
-                    </div>
-                    
+                    <div class="form-group"><label>Full Name</label><input type="text" id="guestName" required></div>
+                    <div class="form-group"><label>Phone Number</label><input type="tel" id="guestPhone" required></div>
+                    <div class="form-group"><label>Check-in Date</label><input type="date" id="checkIn" required></div>
+                    <div class="form-group"><label>Check-out Date</label><input type="date" id="checkOut" required></div>
                     <div style="background: var(--border-color); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
-                        <strong>Total Price: </strong>
-                        <span id="totalPriceDisplay" style="font-size: 24px; color: #2a5a8a; font-weight: 700;">0 ETB</span>
+                        <strong>Total Price: </strong><span id="totalPriceDisplay" style="font-size: 24px; color: #2a5a8a; font-weight: 700;">0 ETB</span>
                     </div>
                     <button type="submit" class="btn btn-gold" style="width: 100%; padding: 15px; font-size: 18px;">Confirm Booking</button>
                 </form>
@@ -59,7 +49,6 @@
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        // --- Dark Mode Logic ---
         if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
         function toggleTheme() {
             document.body.classList.toggle("dark-mode");
@@ -68,22 +57,15 @@
             const icon = document.querySelector("#themeBtn i");
             if(icon) icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
         }
-        window.addEventListener("DOMContentLoaded", () => {
-            const icon = document.querySelector("#themeBtn i");
-            if(icon && document.body.classList.contains("dark-mode")) icon.className = "fa-solid fa-sun";
-        });
-
         function showToast(message, isSuccess = true) {
             Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", style: { background: isSuccess ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
         }
-
-        // --- Auth Check ---
+        
         function checkAuth() {
             const user = localStorage.getItem('user');
             const authLink = document.getElementById('authLink');
             if (user) {
-                authLink.textContent = 'Logout';
-                authLink.href = '#';
+                authLink.textContent = 'Logout'; authLink.href = '#';
                 authLink.onclick = function(e) { e.preventDefault(); localStorage.removeItem('user'); window.location.href = '/login'; };
             } else {
                 showToast('Please login first to book a room.', false);
@@ -93,8 +75,6 @@
 
         const API_URL = '/api';
         let roomPrice = 0;
-
-        // --- URL Params ---
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room_id');
         if (!roomId) {
@@ -113,7 +93,6 @@
                 .catch(error => showToast('Could not load room details.', false));
         }
 
-        // --- Calculate Price ---
         function calculateTotal() {
             const checkIn = new Date(document.getElementById('checkIn').value);
             const checkOut = new Date(document.getElementById('checkOut').value);
@@ -124,16 +103,13 @@
                 document.getElementById('totalPriceDisplay').textContent = '0 ETB';
             }
         }
-
         document.getElementById('checkIn').addEventListener('change', calculateTotal);
         document.getElementById('checkOut').addEventListener('change', calculateTotal);
 
-        // --- Submit Booking ---
         document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const submitBtn = document.querySelector('button[type="submit"]');
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-            submitBtn.disabled = true;
+            const loader = document.getElementById('global-loader');
+            loader.classList.add('active'); // SHOW LOADER
 
             const formData = {
                 room_id: document.getElementById('roomId').value,
@@ -145,9 +121,7 @@
 
             try {
                 const response = await fetch(`${API_URL}/bookings`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
                     body: JSON.stringify(formData)
                 });
                 const data = await response.json();
@@ -156,13 +130,11 @@
                     setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
                 } else {
                     showToast(`❌ ${data.error || 'Booking failed'}`, false);
-                    submitBtn.innerHTML = 'Confirm Booking';
-                    submitBtn.disabled = false;
+                    loader.classList.remove('active'); // HIDE LOADER ON ERROR
                 }
             } catch (error) {
                 showToast('❌ Connection error.', false);
-                submitBtn.innerHTML = 'Confirm Booking';
-                submitBtn.disabled = false;
+                loader.classList.remove('active');
             }
         });
 

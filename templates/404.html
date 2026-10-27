@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>404 - Page Not Found</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
+    </nav>
+    <div class="container" style="text-align: center; margin-top: 100px;">
+        <h1 style="font-size: 100px; color: #e6b800; margin-bottom: 20px;">404</h1>
+        <h2 style="font-family: 'Playfair Display', serif; color: var(--card-title); margin-bottom: 20px;">Page Not Found</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">The page you are looking for might have been removed or is temporarily unavailable.</p>
+        <a href="/" class="btn btn-gold" style="font-size: 18px;"><i class="fa-solid fa-house"></i> Back to Homepage</a>
+    </div>
+</body>
+</html>

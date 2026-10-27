@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     reset_token_expiration = db.Column(db.DateTime, nullable=True)
     bookings = db.relationship('Booking', backref='user', lazy=True)
     reviews = db.relationship('Review', backref='author', lazy=True)
+    cart_items = db.relationship('CartItem', backref='user', lazy=True)
 
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -74,13 +75,42 @@ class SiteSetting(db.Model):
     gmail = db.Column(db.String(120), default='yadahotel@gmail.com')
     address = db.Column(db.String(200), default='Bole, Addis Ababa, Ethiopia')
 
-# NEW: Restaurant Menu Model
 class MenuItem(db.Model):
     __tablename__ = 'menu_items'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     price = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(50), nullable=False) # e.g., Breakfast, Lunch, Dinner, Drinks
+    category = db.Column(db.String(50), nullable=False)
     image_filename = db.Column(db.String(200), nullable=True)
-    is_special = db.Column(db.Boolean, default=False) # For "Today's Special"
+    is_special = db.Column(db.Boolean, default=False)
+
+class CartItem(db.Model):
+    __tablename__ = 'cart_items'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
+    quantity = db.Column(db.Integer, default=1)
+    menu_item = db.relationship('MenuItem', backref='cart_entries')
+
+class FoodOrder(db.Model):
+    __tablename__ = 'food_orders'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    total_price = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='pending') 
+    room_number = db.Column(db.String(10), nullable=True) # NEW: Room Service
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    items = db.Column(db.Text, nullable=False)
+
+# NEW: Table Reservations
+class TableReservation(db.Model):
+    __tablename__ = 'table_reservations'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    guest_name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.String(10), nullable=False)
+    guests = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), default='pending')
