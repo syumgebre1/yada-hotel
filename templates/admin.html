@@ -51,7 +51,7 @@
             <a href="/">Home</a>
             <a href="/rooms">Rooms</a>
             <a href="/restaurant">Restaurant</a>
-            <a href="/gallery">Gallery</a> <!-- NEW LINK -->
+            <a href="/gallery">Gallery</a>
             <a href="/admin" style="background: #2a5a8a; color: white; border-radius: 25px;"><i class="fa-solid fa-user-tie"></i> Admin</a>
             <a href="#" id="logoutLink">Logout</a>
             <button class="nav-theme-toggle" id="themeBtn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
@@ -67,9 +67,9 @@
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card"><div class="number" id="totalRooms">-</div><div class="label">Total Rooms</div></div>
             <div class="stat-card"><div class="number" id="availableRooms">-</div><div class="label">Available</div></div>
-            <div class="stat-card booking"><div class="number" id="totalBookings">-</div><div class="label">Total Bookings</div></div>
-            <div class="stat-card revenue"><div class="number" id="totalRevenue">-</div><div class="label">Revenue (ETB)</div></div>
-            <div class="stat-card guest"><div class="number" id="totalGuests">-</div><div class="label">Total Guests</div></div>
+            <div class="stat-card"><div class="number" id="totalBookings">-</div><div class="label">Total Bookings</div></div>
+            <div class="stat-card"><div class="number" id="totalRevenue">-</div><div class="label">Revenue (ETB)</div></div>
+            <div class="stat-card"><div class="number" id="totalGuests">-</div><div class="label">Total Guests</div></div>
         </div>
 
         <div class="chart-container">
@@ -167,11 +167,87 @@
         </div>
     </div>
 
-    <!-- MODALS (Add Room, Edit Room, Add Menu, Add Gallery) -->
-    <div class="modal" id="addRoomModal">...</div>
-    <div class="modal" id="editRoomModal">...</div>
-    <div class="modal" id="addMenuModal">...</div>
-    
+    <!-- ADD ROOM MODAL -->
+    <div class="modal" id="addRoomModal">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-plus"></i> Add New Room</h3>
+            <form id="addRoomForm" enctype="multipart/form-data">
+                <input type="text" id="roomNumber" placeholder="Room Number (e.g., 114)" required>
+                <select id="roomType" required>
+                    <option value="Standard">Standard</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="Suite">Suite</option>
+                </select>
+                <input type="number" id="roomPrice" placeholder="Price per night" required>
+                <textarea id="roomDescription" placeholder="Description" rows="3"></textarea>
+                <input type="text" id="roomAmenities" placeholder="Amenities (e.g., WiFi, TV, AC, Mini Bar)">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="checkbox" id="roomFeatured" style="width: auto; margin: 0;">
+                    <label for="roomFeatured" style="margin: 0; color: var(--text-color);">Feature on Homepage</label>
+                </div>
+                <label style="display:block; margin-bottom:5px; font-weight:bold; color: var(--text-color);">Room Images (Select Multiple)</label>
+                <input type="file" id="roomImages" accept="image/*" multiple>
+                <button type="submit" class="btn btn-gold" style="width:100%; margin-top:10px;">Add Room</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('addRoomModal')" style="width:100%; margin-top:10px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT ROOM MODAL -->
+    <div class="modal" id="editRoomModal">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-pen"></i> Edit Room</h3>
+            <form id="editRoomForm" enctype="multipart/form-data">
+                <input type="hidden" id="editRoomId">
+                <input type="text" id="editRoomNumber" placeholder="Room Number" required>
+                <select id="editRoomType" required>
+                    <option value="Standard">Standard</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="Suite">Suite</option>
+                </select>
+                <input type="number" id="editRoomPrice" placeholder="Price per night" required>
+                <textarea id="editRoomDescription" placeholder="Description" rows="3"></textarea>
+                <input type="text" id="editRoomAmenities" placeholder="Amenities (e.g., WiFi, TV, AC, Mini Bar)">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="checkbox" id="editRoomFeatured" style="width: auto; margin: 0;">
+                    <label for="editRoomFeatured" style="margin: 0; color: var(--text-color);">Feature on Homepage</label>
+                </div>
+                <label style="display:block; margin-bottom:5px; font-weight:bold; color: var(--text-color);">Upload New Image (Optional)</label>
+                <input type="file" id="editRoomImage" accept="image/*" style="margin-bottom: 5px;">
+                <button type="submit" class="btn btn-gold" style="width:100%; margin-top:10px;">Save Changes</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('editRoomModal')" style="width:100%; margin-top:10px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD MENU ITEM MODAL -->
+    <div class="modal" id="addMenuModal">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-utensils"></i> Add Menu Item</h3>
+            <form id="addMenuForm" enctype="multipart/form-data">
+                <input type="text" id="menuName" placeholder="Food Name (e.g., Doro Wat)" required>
+                <textarea id="menuDesc" placeholder="Description" rows="2"></textarea>
+                <input type="number" id="menuPrice" placeholder="Price (ETB)" required>
+                <select id="menuCategory" required>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Dessert">Dessert</option>
+                </select>
+                <label style="display:block; margin-bottom:5px; font-weight:bold; color: var(--text-color);">Food Image</label>
+                <input type="file" id="menuImage" accept="image/*">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="checkbox" id="menuSpecial" style="width: auto; margin: 0;">
+                    <label for="menuSpecial" style="margin: 0; color: var(--text-color);">Mark as Today's Special</label>
+                </div>
+                <button type="submit" class="btn btn-gold" style="width:100%; margin-top:10px;">Add Item</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('addMenuModal')" style="width:100%; margin-top:10px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD GALLERY MODAL -->
     <div class="modal" id="addGalleryModal">
         <div class="modal-content">
             <h3><i class="fa-solid fa-images"></i> Add Hotel Photo</h3>
@@ -185,10 +261,224 @@
         </div>
     </div>
 
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        // ... Existing JS logic ...
-        
-        // NEW GALLERY LOGIC
+        const API_URL = '/api';
+        if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            const icon = document.querySelector("#themeBtn i");
+            if(icon) icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        }
+        function showToast(message, isSuccess = true) {
+            Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", style: { background: isSuccess ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
+        }
+
+        function checkAuth() {
+            const user = localStorage.getItem('user');
+            if (!user) { window.location.href = '/login'; return; }
+            try {
+                const userData = JSON.parse(user);
+                if (userData.username !== 'admin') { showToast('Admin access required!', false); setTimeout(() => window.location.href = '/dashboard', 1500); }
+            } catch(e) { window.location.href = '/login'; }
+        }
+
+        async function loadStats() {
+            const res = await fetch(`${API_URL}/admin/stats`, { credentials: 'include' });
+            if (res.ok) {
+                const stats = await res.json();
+                document.getElementById('totalRooms').textContent = stats.total_rooms;
+                document.getElementById('availableRooms').textContent = stats.available_rooms;
+                document.getElementById('totalBookings').textContent = stats.total_bookings;
+                document.getElementById('totalRevenue').textContent = stats.total_revenue.toLocaleString();
+                document.getElementById('totalGuests').textContent = stats.total_guests;
+            }
+        }
+
+        async function loadChart() {
+            const res = await fetch(`${API_URL}/admin/chart-data`, { credentials: 'include' });
+            if (res.ok) {
+                const data = await res.json();
+                const ctx = document.getElementById('revenueChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: data.labels, datasets: [{ label: 'Revenue (ETB)', data: data.data, borderColor: '#e6b800', backgroundColor: 'rgba(230, 184, 0, 0.2)', borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#1a3a5c', pointRadius: 5 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(150, 150, 150, 0.2)' } }, x: { grid: { display: false } } } }
+                });
+            }
+        }
+
+        async function loadCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' },
+                events: async function(info, successCallback, failureCallback) {
+                    try {
+                        const res = await fetch(`${API_URL}/admin/calendar`, { credentials: 'include' });
+                        const events = await res.json();
+                        successCallback(events);
+                    } catch(e) { failureCallback(e); }
+                }
+            });
+            calendar.render();
+        }
+
+        async function loadRooms() {
+            const res = await fetch(`${API_URL}/rooms`);
+            const rooms = await res.json();
+            const tbody = document.getElementById('roomsTableBody');
+            tbody.innerHTML = '';
+            rooms.forEach(r => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${r.room_number}</td><td>${r.room_type}</td><td>${r.price.toLocaleString()} ETB</td>
+                        <td>${r.is_featured ? '<i class="fa-solid fa-star" style="color: #e6b800;"></i>' : '-'}</td>
+                        <td><span class="badge ${r.available ? 'badge-available' : 'badge-occupied'}">${r.available ? 'Available' : 'Occupied'}</span></td>
+                        <td>
+                            <button class="btn-sm btn-edit" onclick="openEditRoom(${r.id})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-sm btn-delete" onclick="deleteRoom(${r.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        async function loadBookings() {
+            const res = await fetch(`${API_URL}/admin/bookings`, { credentials: 'include' });
+            if (!res.ok) return;
+            const bookings = await res.json();
+            const tbody = document.getElementById('bookingsTableBody');
+            tbody.innerHTML = '';
+            bookings.forEach(b => {
+                tbody.innerHTML += `<tr><td>#${b.id}</td><td>${b.room_number}</td><td>${b.guest_name}</td><td>${b.check_in}</td><td>${b.check_out}</td><td>${b.total_price.toLocaleString()} ETB</td><td><span class="badge badge-${b.status}">${b.status.toUpperCase()}</span></td></tr>`;
+            });
+        }
+
+        async function loadReviews() {
+            const res = await fetch(`${API_URL}/admin/reviews`, { credentials: 'include' });
+            if (!res.ok) return;
+            const reviews = await res.json();
+            const tbody = document.getElementById('reviewsTableBody');
+            tbody.innerHTML = '';
+            if (reviews.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No reviews yet.</td></tr>';
+                return;
+            }
+            reviews.forEach(r => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>Room ${r.room_number}</td>
+                        <td>${r.author}</td>
+                        <td><span style="color: #e6b800;">${'<i class="fa-solid fa-star"></i>'.repeat(r.rating)}</span></td>
+                        <td>${r.comment || 'No comment'}</td>
+                        <td>${r.date}</td>
+                    </tr>`;
+            });
+        }
+
+        async function loadGuests() {
+            const res = await fetch(`${API_URL}/admin/guests`, { credentials: 'include' });
+            if (!res.ok) return;
+            const guests = await res.json();
+            const tbody = document.getElementById('guestsTableBody');
+            tbody.innerHTML = '';
+            guests.forEach(g => {
+                tbody.innerHTML += `<tr><td>${g.id}</td><td>${g.username}</td><td>${g.email}</td><td>${g.total_bookings}</td></tr>`;
+            });
+        }
+
+        async function loadSettings() {
+            const res = await fetch(`${API_URL}/admin/settings`, { credentials: 'include' });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('setWhatsapp').value = data.whatsapp || '';
+                document.getElementById('setTelegram').value = data.telegram || '';
+                document.getElementById('setGmail').value = data.gmail || '';
+                document.getElementById('setAddress').value = data.address || '';
+            }
+        }
+
+        async function loadMenu() {
+            const res = await fetch(`${API_URL}/menu`);
+            const items = await res.json();
+            const tbody = document.getElementById('menuTableBody');
+            tbody.innerHTML = '';
+            items.forEach(i => {
+                const img = i.image_filename ? `<img src="/static/uploads/${i.image_filename}" style="width: 50px; height: 50px; border-radius: 5px; object-fit: cover;">` : '<i class="fa-solid fa-image" style="font-size: 24px; color: #ccc;"></i>';
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${img}</td>
+                        <td>${i.name}</td>
+                        <td>${i.category}</td>
+                        <td>${i.price.toLocaleString()} ETB</td>
+                        <td>${i.is_special ? '<i class="fa-solid fa-star" style="color: #e6b800;"></i>' : '-'}</td>
+                        <td>
+                            <button class="btn-sm btn-delete" onclick="deleteMenuItem(${i.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        async function loadFoodOrders() {
+            const res = await fetch(`${API_URL}/admin/food-orders`, { credentials: 'include' });
+            if (!res.ok) return;
+            const orders = await res.json();
+            const tbody = document.getElementById('foodOrdersTableBody');
+            tbody.innerHTML = '';
+            orders.forEach(o => {
+                const itemsParsed = JSON.parse(o.items).map(i => `${i.qty}x ${i.name}`).join(', ');
+                let statusBadge = 'badge-pending';
+                if(o.status === 'preparing') statusBadge = 'badge-available';
+                if(o.status === 'delivered') statusBadge = 'badge-occupied';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${o.id}</td>
+                        <td>${o.user}</td>
+                        <td>${o.room ? `<strong>Room ${o.room}</strong>` : 'Takeaway'}</td>
+                        <td>${itemsParsed}</td>
+                        <td>${o.total.toLocaleString()} ETB</td>
+                        <td><span class="badge ${statusBadge}">${o.status.toUpperCase()}</span></td>
+                        <td>
+                            <select onchange="updateOrderStatus(${o.id}, this.value)" style="padding: 5px; border-radius: 5px; margin-bottom: 5px;">
+                                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="preparing" ${o.status === 'preparing' ? 'selected' : ''}>Preparing</option>
+                                <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                            </select>
+                            <br>
+                            <a href="/api/admin/food-orders/${o.id}/ticket" target="_blank" class="btn-sm btn-edit" style="text-decoration:none;"><i class="fa-solid fa-print"></i> Print Ticket</a>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        async function loadTableReservations() {
+            const res = await fetch(`${API_URL}/admin/table-reservations`, { credentials: 'include' });
+            if (!res.ok) return;
+            const reservations = await res.json();
+            const tbody = document.getElementById('tableResTableBody');
+            tbody.innerHTML = '';
+            reservations.forEach(r => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${r.name}</td>
+                        <td>${r.phone}</td>
+                        <td>${r.date}</td>
+                        <td>${r.time}</td>
+                        <td>${r.guests}</td>
+                        <td><span class="badge ${r.status === 'confirmed' ? 'badge-available' : 'badge-pending'}">${r.status.toUpperCase()}</span></td>
+                        <td>
+                            <select onchange="updateResStatus(${r.id}, this.value)" style="padding: 5px; border-radius: 5px;">
+                                <option value="pending" ${r.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="confirmed" ${r.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            </select>
+                        </td>
+                    </tr>`;
+            });
+        }
+
         async function loadGallery() {
             const res = await fetch(`${API_URL}/gallery`);
             const images = await res.json();
@@ -203,8 +493,151 @@
             });
         }
 
+        async function updateResStatus(id, status) {
+            await fetch(`${API_URL}/admin/table-reservations/${id}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ status })
+            });
+            showToast('Reservation status updated!');
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            const res = await fetch(`${API_URL}/admin/food-orders/${orderId}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.ok) { showToast('Status updated!', true); loadFoodOrders(); }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+            
+            if (tab === 'rooms') loadRooms();
+            else if (tab === 'bookings') loadBookings();
+            else if (tab === 'calendar') loadCalendar();
+            else if (tab === 'restaurant') loadMenu();
+            else if (tab === 'foodorders') loadFoodOrders();
+            else if (tab === 'tableres') loadTableReservations();
+            else if (tab === 'gallery') loadGallery();
+            else if (tab === 'reviews') loadReviews();
+            else if (tab === 'guests') loadGuests();
+            else if (tab === 'settings') loadSettings();
+        }
+
+        function openAddRoom() { document.getElementById('addRoomModal').classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function openAddMenuModal() { document.getElementById('addMenuModal').classList.add('active'); }
         function openAddGalleryModal() { document.getElementById('addGalleryModal').classList.add('active'); }
-        
+
+        async function openEditRoom(roomId) {
+            try {
+                const res = await fetch(`${API_URL}/rooms/${roomId}`);
+                const room = await res.json();
+                
+                document.getElementById('editRoomId').value = room.id;
+                document.getElementById('editRoomNumber').value = room.room_number;
+                document.getElementById('editRoomType').value = room.room_type;
+                document.getElementById('editRoomPrice').value = room.price;
+                document.getElementById('editRoomDescription').value = room.description || '';
+                document.getElementById('editRoomAmenities').value = room.amenities || '';
+                document.getElementById('editRoomFeatured').checked = room.is_featured;
+                document.getElementById('editRoomImage').value = '';
+                document.getElementById('editRoomModal').classList.add('active');
+            } catch(e) {
+                showToast('❌ Failed to load room details', false);
+            }
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch(`${API_URL}/admin/settings`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ whatsapp: document.getElementById('setWhatsapp').value, telegram: document.getElementById('setTelegram').value, gmail: document.getElementById('setGmail').value, address: document.getElementById('setAddress').value })
+            });
+            if (res.ok) showToast('✅ Settings updated successfully!', true);
+            else showToast('❌ Failed to update settings', false);
+        });
+
+        document.getElementById('addRoomForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('room_number', document.getElementById('roomNumber').value);
+            formData.append('room_type', document.getElementById('roomType').value);
+            formData.append('price', document.getElementById('roomPrice').value);
+            formData.append('description', document.getElementById('roomDescription').value);
+            formData.append('amenities', document.getElementById('roomAmenities').value);
+            formData.append('is_featured', document.getElementById('roomFeatured').checked);
+            
+            const imageFiles = document.getElementById('roomImages').files;
+            for (let i = 0; i < imageFiles.length; i++) { formData.append('images', imageFiles[i]); }
+
+            try {
+                const res = await fetch(`${API_URL}/admin/rooms`, { method: 'POST', credentials: 'include', body: formData });
+                if (res.ok) {
+                    showToast('✅ Room added with gallery!', true);
+                    closeModal('addRoomModal');
+                    loadRooms(); loadStats();
+                    document.getElementById('addRoomForm').reset();
+                } else {
+                    const data = await res.json();
+                    showToast('❌ ' + data.error, false);
+                }
+            } catch(e) { showToast('❌ Connection error', false); }
+        });
+
+        document.getElementById('editRoomForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const roomId = document.getElementById('editRoomId').value;
+            const formData = new FormData();
+            formData.append('room_number', document.getElementById('editRoomNumber').value);
+            formData.append('room_type', document.getElementById('editRoomType').value);
+            formData.append('price', document.getElementById('editRoomPrice').value);
+            formData.append('description', document.getElementById('editRoomDescription').value);
+            formData.append('amenities', document.getElementById('editRoomAmenities').value);
+            formData.append('is_featured', document.getElementById('editRoomFeatured').checked);
+            
+            const imageFile = document.getElementById('editRoomImage').files[0];
+            if (imageFile) formData.append('image', imageFile);
+
+            try {
+                const res = await fetch(`${API_URL}/admin/rooms/${roomId}/edit`, { method: 'POST', credentials: 'include', body: formData });
+                if (res.ok) {
+                    showToast('✅ Room updated successfully!', true);
+                    closeModal('editRoomModal');
+                    loadRooms(); loadStats();
+                } else {
+                    const data = await res.json();
+                    showToast('❌ ' + data.error, false);
+                }
+            } catch(e) { showToast('❌ Connection error', false); }
+        });
+
+        document.getElementById('addMenuForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('name', document.getElementById('menuName').value);
+            formData.append('description', document.getElementById('menuDesc').value);
+            formData.append('price', document.getElementById('menuPrice').value);
+            formData.append('category', document.getElementById('menuCategory').value);
+            formData.append('is_special', document.getElementById('menuSpecial').checked);
+            
+            const imgFile = document.getElementById('menuImage').files[0];
+            if (imgFile) formData.append('image', imgFile);
+
+            try {
+                const res = await fetch(`${API_URL}/admin/menu`, { method: 'POST', credentials: 'include', body: formData });
+                if (res.ok) {
+                    showToast('✅ Menu item added!', true);
+                    closeModal('addMenuModal');
+                    loadMenu();
+                    document.getElementById('addMenuForm').reset();
+                } else { showToast('❌ Failed to add item', false); }
+            } catch(e) { showToast('❌ Connection error', false); }
+        });
+
         document.getElementById('addGalleryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData();
@@ -222,16 +655,32 @@
             } catch(e) { showToast('❌ Connection error', false); }
         });
 
+        async function deleteRoom(id) {
+            if (!confirm('Delete this room?')) return;
+            await fetch(`${API_URL}/admin/rooms/${id}`, { method: 'DELETE', credentials: 'include' });
+            loadRooms(); loadStats();
+        }
+
+        async function deleteMenuItem(id) {
+            if (!confirm('Delete this menu item?')) return;
+            await fetch(`${API_URL}/admin/menu/${id}`, { method: 'DELETE', credentials: 'include' });
+            loadMenu();
+        }
+
         async function deleteGalleryImage(id) {
             if (!confirm('Delete this photo?')) return;
             await fetch(`${API_URL}/admin/gallery/${id}`, { method: 'DELETE', credentials: 'include' });
             loadGallery();
         }
 
-        function switchTab(tab) {
-            // ... existing switch logic ...
-            if (tab === 'gallery') loadGallery();
+        function logout() {
+            localStorage.removeItem('user');
+            fetch(`${API_URL}/logout`, { method: 'POST', credentials: 'include' }).finally(() => { window.location.href = '/login'; });
         }
+        document.getElementById('logoutLink').onclick = (e) => { e.preventDefault(); logout(); };
+        document.getElementById('logoutBtn').onclick = logout;
+
+        checkAuth(); loadStats(); loadChart(); loadRooms();
     </script>
 </body>
 </html>
