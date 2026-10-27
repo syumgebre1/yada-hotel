@@ -47,10 +47,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <!-- FIXED LOGO LINK -->
-        <a href="/" class="navbar-brand">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;">
-        </a>
+        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
         <div class="navbar-links">
             <a href="/">Home</a>
             <a href="/rooms">Rooms</a>
@@ -160,6 +157,86 @@
                 <div class="form-group"><label>Company Gmail Address</label><input type="email" id="setGmail" required></div>
                 <div class="form-group"><label>Physical Address</label><input type="text" id="setAddress" required></div>
                 <button type="submit" class="btn btn-gold" style="width: 100%;"><i class="fa-solid fa-save"></i> Save Settings</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD ROOM MODAL -->
+    <div class="modal" id="addRoomModal">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-plus"></i> Add New Room</h3>
+            <form id="addRoomForm" enctype="multipart/form-data">
+                <input type="text" id="roomNumber" placeholder="Room Number (e.g., 114)" required>
+                <select id="roomType" required>
+                    <option value="Standard">Standard</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="Suite">Suite</option>
+                </select>
+                <input type="number" id="roomPrice" placeholder="Price per night" required>
+                <textarea id="roomDescription" placeholder="Description" rows="3"></textarea>
+                <input type="text" id="roomAmenities" placeholder="Amenities (e.g., WiFi, TV, AC, Mini Bar)">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="checkbox" id="roomFeatured" style="width: auto; margin: 0;">
+                    <label for="roomFeatured" style="margin: 0; color: var(--text-color);">Feature on Homepage</label>
+                </div>
+                <label style="display:block; margin-bottom:5px; font-weight:bold; color: var(--text-color);">Room Images (Select Multiple)</label>
+                <input type="file" id="roomImages" accept="image/*" multiple>
+                <button type="submit" class="btn btn-gold" style="width:100%; margin-top:10px;">Add Room</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('addRoomModal')" style="width:100%; margin-top:10px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT ROOM MODAL -->
+    <div class="modal" id="editRoomModal">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-pen"></i> Edit Room</h3>
+            <form id="editRoomForm" enctype="multipart/form-data">
+                <input type="hidden" id="editRoomId">
+                <input type="text" id="editRoomNumber" placeholder="Room Number" required>
+                <select id="editRoomType" required>
+                    <option value="Standard">Standard</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="Suite">Suite</option>
+                </select>
+                <input type="number" id="editRoomPrice" placeholder="Price per night" required>
+                <textarea id="editRoomDescription" placeholder="Description" rows="3"></textarea>
+                <input type="text" id="editRoomAmenities" placeholder="Amenities (e.g., WiFi, TV, AC, Mini Bar)">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="checkbox" id="editRoomFeatured" style="width: auto; margin: 0;">
+                    <label for="editRoomFeatured" style="margin: 0; color: var(--text-color);">Feature on Homepage</label>
+                </div>
+                <label style="display:block; margin-bottom:5px; font-weight:bold; color: var(--text-color);">Upload New Image (Optional)</label>
+                <input type="file" id="editRoomImage" accept="image/*" style="margin-bottom: 5px;">
+                <button type="submit" class="btn btn-gold" style="width:100%; margin-top:10px;">Save Changes</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('editRoomModal')" style="width:100%; margin-top:10px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD MENU ITEM MODAL -->
+    <div class="modal" id="addMenuModal">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-utensils"></i> Add Menu Item</h3>
+            <form id="addMenuForm" enctype="multipart/form-data">
+                <input type="text" id="menuName" placeholder="Food Name (e.g., Doro Wat)" required>
+                <textarea id="menuDesc" placeholder="Description" rows="2"></textarea>
+                <input type="number" id="menuPrice" placeholder="Price (ETB)" required>
+                <select id="menuCategory" required>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Dessert">Dessert</option>
+                </select>
+                <label style="display:block; margin-bottom:5px; font-weight:bold; color: var(--text-color);">Food Image</label>
+                <input type="file" id="menuImage" accept="image/*">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="checkbox" id="menuSpecial" style="width: auto; margin: 0;">
+                    <label for="menuSpecial" style="margin: 0; color: var(--text-color);">Mark as Today's Special</label>
+                </div>
+                <button type="submit" class="btn btn-gold" style="width:100%; margin-top:10px;">Add Item</button>
+                <button type="button" class="btn btn-danger" onclick="closeModal('addMenuModal')" style="width:100%; margin-top:10px;">Cancel</button>
             </form>
         </div>
     </div>
@@ -447,6 +524,105 @@
             if (res.ok) showToast('✅ Settings updated successfully!', true);
             else showToast('❌ Failed to update settings', false);
         });
+
+        // Add Room Form Submission
+        document.getElementById('addRoomForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('room_number', document.getElementById('roomNumber').value);
+            formData.append('room_type', document.getElementById('roomType').value);
+            formData.append('price', document.getElementById('roomPrice').value);
+            formData.append('description', document.getElementById('roomDescription').value);
+            formData.append('amenities', document.getElementById('roomAmenities').value);
+            formData.append('is_featured', document.getElementById('roomFeatured').checked);
+            
+            const imageFiles = document.getElementById('roomImages').files;
+            for (let i = 0; i < imageFiles.length; i++) { formData.append('images', imageFiles[i]); }
+
+            try {
+                const res = await fetch(`${API_URL}/admin/rooms`, { method: 'POST', credentials: 'include', body: formData });
+                if (res.ok) {
+                    showToast('✅ Room added with gallery!', true);
+                    closeModal('addRoomModal');
+                    loadRooms(); loadStats();
+                    document.getElementById('addRoomForm').reset();
+                } else {
+                    const data = await res.json();
+                    showToast('❌ ' + data.error, false);
+                }
+            } catch(e) { showToast('❌ Connection error', false); }
+        });
+
+        // Edit Room Form Submission
+        document.getElementById('editRoomForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const roomId = document.getElementById('editRoomId').value;
+            const formData = new FormData();
+            formData.append('room_number', document.getElementById('editRoomNumber').value);
+            formData.append('room_type', document.getElementById('editRoomType').value);
+            formData.append('price', document.getElementById('editRoomPrice').value);
+            formData.append('description', document.getElementById('editRoomDescription').value);
+            formData.append('amenities', document.getElementById('editRoomAmenities').value);
+            formData.append('is_featured', document.getElementById('editRoomFeatured').checked);
+            
+            const imageFile = document.getElementById('editRoomImage').files[0];
+            if (imageFile) formData.append('image', imageFile);
+
+            try {
+                const res = await fetch(`${API_URL}/admin/rooms/${roomId}/edit`, { method: 'POST', credentials: 'include', body: formData });
+                if (res.ok) {
+                    showToast('✅ Room updated successfully!', true);
+                    closeModal('editRoomModal');
+                    loadRooms(); loadStats();
+                } else {
+                    const data = await res.json();
+                    showToast('❌ ' + data.error, false);
+                }
+            } catch(e) { showToast('❌ Connection error', false); }
+        });
+
+        // Add Menu Form Submission
+        document.getElementById('addMenuForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('name', document.getElementById('menuName').value);
+            formData.append('description', document.getElementById('menuDesc').value);
+            formData.append('price', document.getElementById('menuPrice').value);
+            formData.append('category', document.getElementById('menuCategory').value);
+            formData.append('is_special', document.getElementById('menuSpecial').checked);
+            
+            const imgFile = document.getElementById('menuImage').files[0];
+            if (imgFile) formData.append('image', imgFile);
+
+            try {
+                const res = await fetch(`${API_URL}/admin/menu`, { method: 'POST', credentials: 'include', body: formData });
+                if (res.ok) {
+                    showToast('✅ Menu item added!', true);
+                    closeModal('addMenuModal');
+                    loadMenu();
+                    document.getElementById('addMenuForm').reset();
+                } else { showToast('❌ Failed to add item', false); }
+            } catch(e) { showToast('❌ Connection error', false); }
+        });
+
+        async function deleteRoom(id) {
+            if (!confirm('Delete this room?')) return;
+            await fetch(`${API_URL}/admin/rooms/${id}`, { method: 'DELETE', credentials: 'include' });
+            loadRooms(); loadStats();
+        }
+
+        async function deleteMenuItem(id) {
+            if (!confirm('Delete this menu item?')) return;
+            await fetch(`${API_URL}/admin/menu/${id}`, { method: 'DELETE', credentials: 'include' });
+            loadMenu();
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            fetch(`${API_URL}/logout`, { method: 'POST', credentials: 'include' }).finally(() => { window.location.href = '/login'; });
+        }
+        document.getElementById('logoutLink').onclick = (e) => { e.preventDefault(); logout(); };
+        document.getElementById('logoutBtn').onclick = logout;
 
         checkAuth(); loadStats(); loadChart(); loadRooms();
     </script>
