@@ -143,7 +143,7 @@ def not_found(e): return render_template('404.html'), 404
 @app.errorhandler(500)
 def server_error(e): return render_template('500.html'), 500
 
-# ===== AUTHENTICATION APIs =====
+# ===== AUTH APIs =====
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS': return '', 200
@@ -307,6 +307,7 @@ def remove_from_cart(cart_id):
         return jsonify({'message': 'Removed'}), 200
     return jsonify({'error': 'Not found'}), 404
 
+# ===== FIXED: INSTANT CHECKOUT =====
 @app.route('/api/cart/checkout', methods=['POST'])
 @api_login_required
 def checkout():
@@ -316,10 +317,16 @@ def checkout():
     room_number = data.get('room_number', '')
     total = sum([c.menu_item.price * c.quantity for c in cart_items])
     items_summary = json.dumps([{'name': c.menu_item.name, 'qty': c.quantity} for c in cart_items])
+    
     order = FoodOrder(user_id=current_user.id, total_price=total, items=items_summary, room_number=room_number)
     db.session.add(order)
     CartItem.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
+    
+    # Print email instantly instead of trying to send it and hanging
+    print(f"\n📧 [SIMULATED FOOD RECEIPT] To: {current_user.email}")
+    print(f"Order ID: #{order.id} | Total: {total} ETB | Room: {room_number if room_number else 'Takeaway'}\n")
+    
     return jsonify({'message': 'Order placed successfully!', 'total': total}), 201
 
 @app.route('/api/my-food-orders', methods=['GET'])
@@ -341,7 +348,7 @@ def book_table():
     db.session.commit()
     return jsonify({'message': 'Table reservation requested!'}), 201
 
-# ===== NEW: GOLD/SILVER/RED FOOD RECEIPT PDF =====
+# ===== GOLD/SILVER/RED FOOD RECEIPT PDF =====
 @app.route('/api/food-orders/<int:order_id>/receipt', methods=['GET'])
 @api_login_required
 def food_receipt(order_id):
@@ -392,7 +399,7 @@ def food_receipt(order_id):
     buffer.seek(0)
     return Response(buffer.getvalue(), mimetype="application/pdf", headers={"Content-Disposition": f"attachment; filename=Food_Receipt_{order.id}.pdf"})
 
-# ===== NEW: GALLERY APIs =====
+# ===== GALLERY APIs =====
 @app.route('/api/gallery', methods=['GET'])
 def get_gallery():
     images = GalleryImage.query.order_by(GalleryImage.created_at.desc()).all()
