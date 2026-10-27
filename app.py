@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, session, render_template, Response
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
-from models import db, User, Room, Booking, Review, RoomImage, ContactMessage, SiteSetting, MenuItem, CartItem, FoodOrder, TableReservation
+from models import db, User, Room, Booking, Review, RoomImage, ContactMessage, SiteSetting, MenuItem, CartItem, FoodOrder, TableReservation, GalleryImage
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from functools import wraps
@@ -14,7 +14,8 @@ from werkzeug.utils import secure_filename
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
 
 app = Flask(__name__)
 app.secret_key = 'yada-hotel-secret-key-2026'
@@ -134,15 +135,13 @@ def reset_password_page(): return render_template('reset_password.html')
 def contact_page(): return render_template('contact.html')
 @app.route('/restaurant')
 def restaurant_page(): return render_template('restaurant.html')
+@app.route('/gallery')
+def gallery_page(): return render_template('gallery.html')
 
-# ===== ERROR HANDLERS =====
 @app.errorhandler(404)
-def not_found(e):
-    return render_template('404.html'), 404
-
+def not_found(e): return render_template('404.html'), 404
 @app.errorhandler(500)
-def server_error(e):
-    return render_template('500.html'), 500
+def server_error(e): return render_template('500.html'), 500
 
 # ===== AUTHENTICATION APIs =====
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
@@ -196,7 +195,7 @@ def change_password():
     db.session.commit()
     return jsonify({'message': 'Password changed successfully'}), 200
 
-# ===== ROOM APIs =====
+# ===== PUBLIC DATA APIs =====
 @app.route('/api/rooms', methods=['GET'])
 def get_rooms():
     rooms = Room.query.all()
@@ -241,7 +240,7 @@ def check_availability():
         rooms_data.append({'id': r.id, 'room_number': r.room_number, 'room_type': r.room_type, 'price': r.price, 'description': r.description, 'image_filename': r.image_filename, 'images': images, 'is_featured': r.is_featured, 'amenities': r.amenities})
     return jsonify(rooms_data), 200
 
-# ===== BOOKING APIs =====
+# ===== USER BOOKING APIs =====
 @app.route('/api/bookings', methods=['POST'])
 @api_login_required
 def create_booking():
@@ -313,26 +312,21 @@ def remove_from_cart(cart_id):
 def checkout():
     cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
     if not cart_items: return jsonify({'error': 'Cart is empty'}), 400
-    
     data = request.get_json()
     room_number = data.get('room_number', '')
-    
     total = sum([c.menu_item.price * c.quantity for c in cart_items])
     items_summary = json.dumps([{'name': c.menu_item.name, 'qty': c.quantity} for c in cart_items])
-    
     order = FoodOrder(user_id=current_user.id, total_price=total, items=items_summary, room_number=room_number)
     db.session.add(order)
     CartItem.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
-    
-    try:
-        msg = Message(subject=f"Food Order Receipt - YADA HOTEL (Order #{order.id})", recipients=[current_user.email])
-        msg.body = f"Hello {current_user.username},\n\nThank you for your order!\n\nOrder ID: #{order.id}\nItems: {items_summary}\nRoom Service: {room_number if room_number else 'Takeaway'}\nTotal: {total} ETB"
-        mail.send(msg)
-    except Exception as e:
-        print(f"\n⚠️ Food order email simulated. To: {current_user.email}")
-    
     return jsonify({'message': 'Order placed successfully!', 'total': total}), 201
+
+@app.route('/api/my-food-orders', methods=['GET'])
+@api_login_required
+def get_my_food_orders():
+    orders = FoodOrder.query.filter_by(user_id=current_user.id).order_by(FoodOrder.created_at.desc()).all()
+    return jsonify([{'id': o.id, 'total': o.total_price, 'room': o.room_number, 'items': o.items, 'status': o.status, 'date': o.created_at.strftime('%Y-%m-%d %H:%M')} for o in orders]), 200
 
 # ===== TABLE RESERVATION APIs =====
 @app.route('/api/table-reservations', methods=['POST'])
@@ -346,6 +340,88 @@ def book_table():
     db.session.add(reservation)
     db.session.commit()
     return jsonify({'message': 'Table reservation requested!'}), 201
+
+# ===== NEW: GOLD/SILVER/RED FOOD RECEIPT PDF =====
+@app.route('/api/food-orders/<int:order_id>/receipt', methods=['GET'])
+@api_login_required
+def food_receipt(order_id):
+    order = db.session.get(FoodOrder, order_id)
+    if not order or (order.user_id != current_user.id and current_user.username != 'admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=40, leftMargin=40, topMargin=40, bottomMargin=40)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    gold = colors.HexColor("#D4AF37")
+    silver = colors.HexColor("#C0C0C0")
+    red = colors.HexColor("#e74c3c")
+    
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], alignment=TA_CENTER, textColor=gold, fontSize=24, spaceAfter=10)
+    subtitle_style = ParagraphStyle('SubtitleStyle', parent=styles['Normal'], alignment=TA_CENTER, textColor=silver, fontSize=12, spaceAfter=20)
+    red_style = ParagraphStyle('RedStyle', parent=styles['Normal'], textColor=red, fontName='Helvetica-Bold')
+
+    elements.append(Paragraph("<b>YADA HOTEL</b>", title_style))
+    elements.append(Paragraph("Ethiopian Hospitality at its Finest", subtitle_style))
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph(f"<b>Food Order Receipt</b>", styles['Heading2']))
+    elements.append(Spacer(1, 10))
+    
+    data = [['Order ID:', f"#{order.id}"], ['Date:', order.created_at.strftime('%Y-%m-%d %H:%M')], ['Customer:', order.user.username], ['Room Service:', order.room_number if order.room_number else 'Takeaway'], ['Status:', order.status.upper()]]
+    table = Table(data, colWidths=[150, 300])
+    table.setStyle(TableStyle([('BACKGROUND', (0, 0), (0, -1), silver),('TEXTCOLOR', (0, 0), (0, -1), colors.black),('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),('GRID', (0, 0), (-1, -1), 1, gold),('PADDING', (0, 0), (-1, -1), 10)]))
+    elements.append(table)
+    elements.append(Spacer(1, 20))
+
+    items_data = [['Qty', 'Item Name']]
+    items = json.loads(order.items)
+    for item in items:
+        items_data.append([str(item['qty']), item['name']]) 
+
+    items_table = Table(items_data, colWidths=[50, 400])
+    items_table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), gold),('TEXTCOLOR', (0, 0), (-1, 0), colors.black),('ALIGN', (0, 0), (-1, -1), 'CENTER'),('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),('GRID', (0, 0), (-1, -1), 1, silver),('PADDING', (0, 0), (-1, -1), 10)]))
+    elements.append(items_table)
+    elements.append(Spacer(1, 20))
+
+    elements.append(Paragraph(f"<b>Total Paid: {order.total_price:,.2f} ETB</b>", red_style))
+    elements.append(Spacer(1, 40))
+    elements.append(Paragraph("<i>Thank you for dining with us!</i>", styles['Normal']))
+    
+    doc.build(elements)
+    buffer.seek(0)
+    return Response(buffer.getvalue(), mimetype="application/pdf", headers={"Content-Disposition": f"attachment; filename=Food_Receipt_{order.id}.pdf"})
+
+# ===== NEW: GALLERY APIs =====
+@app.route('/api/gallery', methods=['GET'])
+def get_gallery():
+    images = GalleryImage.query.order_by(GalleryImage.created_at.desc()).all()
+    return jsonify([{'id': i.id, 'title': i.title, 'image_filename': i.image_filename} for i in images]), 200
+
+@app.route('/api/admin/gallery', methods=['POST'])
+@admin_required
+def admin_add_gallery():
+    title = request.form.get('title')
+    image_filename = 'default.jpg'
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            image_filename = filename
+    new_image = GalleryImage(title=title, image_filename=image_filename)
+    db.session.add(new_image)
+    db.session.commit()
+    return jsonify({'message': 'Image added to gallery!'}), 201
+
+@app.route('/api/admin/gallery/<int:image_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_gallery(image_id):
+    image = db.session.get(GalleryImage, image_id)
+    if not image: return jsonify({'error': 'Not found'}), 404
+    db.session.delete(image)
+    db.session.commit()
+    return jsonify({'message': 'Image deleted'}), 200
 
 # ===== ADMIN APIs =====
 @app.route('/api/admin/stats', methods=['GET'])
@@ -557,7 +633,6 @@ def kitchen_ticket(order_id):
     buffer.seek(0)
     return Response(buffer.getvalue(), mimetype="application/pdf", headers={"Content-Disposition": f"attachment; filename=Ticket_{order.id}.pdf"})
 
-# ===== CONTACT API =====
 @app.route('/api/contact', methods=['POST'])
 def submit_contact():
     data = request.get_json()
@@ -566,7 +641,6 @@ def submit_contact():
     db.session.commit()
     return jsonify({'message': 'Message sent successfully!'}), 201
 
-# ===== START THE APP =====
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)

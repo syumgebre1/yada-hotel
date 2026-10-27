@@ -99,11 +99,10 @@ class FoodOrder(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), default='pending') 
-    room_number = db.Column(db.String(10), nullable=True) # NEW: Room Service
+    room_number = db.Column(db.String(10), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     items = db.Column(db.Text, nullable=False)
 
-# NEW: Table Reservations
 class TableReservation(db.Model):
     __tablename__ = 'table_reservations'
     id = db.Column(db.Integer, primary_key=True)
@@ -114,3 +113,11 @@ class TableReservation(db.Model):
     time = db.Column(db.String(10), nullable=False)
     guests = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), default='pending')
+
+# NEW: Gallery Model
+class GalleryImage(db.Model):
+    __tablename__ = 'gallery_images'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    image_filename = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
