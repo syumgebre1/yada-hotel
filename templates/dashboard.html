@@ -17,6 +17,13 @@
         .dashboard-content { background: var(--card-bg); border-radius: 15px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .tab-section { display: none; }
         .tab-section.active { display: block; }
+        .booking-item { border-bottom: 1px solid var(--border-color); padding: 15px 0; }
+        .booking-status { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-preparing { background: #d4edda; color: #155724; }
+        .badge-delivered { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -36,6 +43,7 @@
     <div class="container">
         <div class="hero" style="padding: 30px 20px; margin-bottom: 10px;">
             <h1 style="font-size: 32px;">Welcome back, <span id="usernameDisplay">Guest</span>!</h1>
+            <p>Manage your bookings, food orders, and profile below.</p>
         </div>
 
         <div class="dashboard-layout">
@@ -49,18 +57,23 @@
             </div>
 
             <div class="dashboard-content">
+                <!-- ROOM BOOKINGS TAB -->
                 <div id="tab-bookings" class="tab-section active">
                     <h2 style="margin-bottom: 20px;">📅 My Room Bookings</h2>
-                    <div id="bookingsContainer"></div>
-                </div>
-
-                <div id="tab-foodorders" class="tab-section">
-                    <h2 style="margin-bottom: 20px;">🍔 My Food Orders</h2>
-                    <div id="foodOrdersContainer">
-                        <p style="text-align: center; color: var(--text-muted);">Loading...</p>
+                    <div id="bookingsContainer">
+                        <p style="text-align: center; color: var(--text-muted);">Loading your bookings...</p>
                     </div>
                 </div>
 
+                <!-- FOOD ORDERS TAB -->
+                <div id="tab-foodorders" class="tab-section">
+                    <h2 style="margin-bottom: 20px;">🍔 My Food Orders</h2>
+                    <div id="foodOrdersContainer">
+                        <p style="text-align: center; color: var(--text-muted);">Loading your food orders...</p>
+                    </div>
+                </div>
+
+                <!-- PROFILE TAB -->
                 <div id="tab-profile" class="tab-section">
                     <h2 style="margin-bottom: 20px;">👤 Update Profile</h2>
                     <form id="profileForm" style="max-width: 500px;">
@@ -70,6 +83,7 @@
                     </form>
                 </div>
 
+                <!-- SECURITY TAB -->
                 <div id="tab-security" class="tab-section">
                     <h2 style="margin-bottom: 20px;">🔒 Change Password</h2>
                     <form id="passwordForm" style="max-width: 500px;">
@@ -82,11 +96,128 @@
         </div>
     </div>
 
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
         const API_URL = '/api';
-        // ... Existing JS logic for auth, bookings, profile ...
+        if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            const icon = document.querySelector("#themeBtn i");
+            if(icon) icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        }
+        function showToast(message, isSuccess = true) {
+            Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", style: { background: isSuccess ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
+        }
 
-        // NEW: Load Food Orders
+        function checkAuth() {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) { window.location.href = '/login'; return; }
+            try {
+                const user = JSON.parse(userStr);
+                document.getElementById('usernameDisplay').textContent = user.username;
+            } catch(e) { localStorage.removeItem('user'); window.location.href = '/login'; }
+            
+            document.getElementById('authLink').onclick = function(e) {
+                e.preventDefault();
+                localStorage.removeItem('user');
+                fetch(`${API_URL}/logout`, { method: 'POST', credentials: 'include' }).finally(() => { window.location.href = '/login'; });
+            };
+        }
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-menu button').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            btn.classList.add('active');
+
+            if (tabName === 'foodorders') loadMyFoodOrders();
+        }
+
+        // === 1. ROOM BOOKINGS ===
+        async function loadBookings() {
+            const response = await fetch(`${API_URL}/my-bookings`, { credentials: 'include' });
+            if (response.status === 401) { localStorage.removeItem('user'); window.location.href = '/login'; return; }
+            const bookings = await response.json();
+            const container = document.getElementById('bookingsContainer');
+            container.innerHTML = '';
+
+            if (bookings.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: var(--text-muted);">You don't have any room bookings yet.</p>`;
+                return;
+            }
+
+            bookings.forEach(booking => {
+                const statusClass = booking.status === 'confirmed' ? 'status-confirmed' : 'status-cancelled';
+                const reviewBtn = booking.status === 'confirmed' ? 
+                    `<button onclick="showReviewForm(${booking.id})" class="btn btn-primary btn-small" style="margin-top: 10px;"><i class="fa-solid fa-star"></i> Leave Review</button>` : '';
+
+                const item = document.createElement('div');
+                item.className = 'booking-item';
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+                        <div>
+                            <h3 style="color: var(--card-title);">Room ${booking.room_number} (${booking.room_type})</h3>
+                            <p style="font-size: 14px; margin-top: 5px;"><strong>Guest:</strong> ${booking.guest_name}</p>
+                            <p style="font-size: 14px;"><strong>Dates:</strong> ${booking.check_in} to ${booking.check_out}</p>
+                            <p style="font-size: 14px;"><strong>Total:</strong> ${booking.total_price.toLocaleString()} ETB</p>
+                            
+                            <div class="review-form" id="reviewForm-${booking.id}" style="display: none; margin-top: 15px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 10px;">
+                                <h4 style="margin-bottom: 10px;">Rate your stay</h4>
+                                <div class="form-group">
+                                    <select id="rating-${booking.id}" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                                        <option value="5">⭐⭐⭐⭐⭐ (5/5) - Excellent</option>
+                                        <option value="4">⭐⭐⭐⭐ (4/5) - Very Good</option>
+                                        <option value="3">⭐⭐⭐ (3/5) - Average</option>
+                                        <option value="2">⭐⭐ (2/5) - Poor</option>
+                                        <option value="1">⭐ (1/5) - Terrible</option>
+                                    </select>
+                                    <textarea id="comment-${booking.id}" placeholder="Tell us about your stay..." rows="2" style="width: 100%; padding: 8px; margin-bottom: 10px;"></textarea>
+                                    <button onclick="submitReview(${booking.id}, ${booking.room_id})" class="btn btn-gold btn-small" style="width: 100%;">Submit Review</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="booking-status ${statusClass}">${booking.status.toUpperCase()}</span><br>
+                            ${booking.status === 'confirmed' ? `<button onclick="cancelBooking(${booking.id})" class="btn btn-danger btn-small" style="margin-top: 10px;"><i class="fa-solid fa-xmark"></i> Cancel</button>` : ''}
+                            <br>${reviewBtn}
+                            <br><a href="/api/bookings/${booking.id}/invoice" target="_blank" class="btn btn-gold btn-small" style="margin-top: 10px;"><i class="fa-solid fa-file-invoice"></i> Invoice</a>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function cancelBooking(id) {
+            if (!confirm('Are you sure you want to cancel this booking?')) return;
+            const res = await fetch(`${API_URL}/bookings/${id}/cancel`, { method: 'POST', credentials: 'include' });
+            if (res.ok) { showToast('✅ Booking cancelled.', true); loadBookings(); }
+        }
+
+        function showReviewForm(bookingId) {
+            const form = document.getElementById(`reviewForm-${bookingId}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function submitReview(bookingId, roomId) {
+            const rating = document.getElementById(`rating-${bookingId}`).value;
+            const comment = document.getElementById(`comment-${bookingId}`).value;
+            const res = await fetch(`${API_URL}/reviews`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ room_id: roomId, rating: parseInt(rating), comment: comment })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('✅ Review submitted! Thank you.', true);
+                document.getElementById(`reviewForm-${bookingId}`).style.display = 'none';
+            } else {
+                showToast(`❌ ${data.error}`, false);
+            }
+        }
+
+        // === 2. FOOD ORDERS ===
         async function loadMyFoodOrders() {
             const res = await fetch(`${API_URL}/my-food-orders`, { credentials: 'include' });
             const orders = await res.json();
@@ -94,18 +225,18 @@
             container.innerHTML = '';
 
             if (orders.length === 0) {
-                container.innerHTML = '<p style="text-align:center;">You have no food orders yet.</p>';
+                container.innerHTML = '<p style="text-align:center; color: var(--text-muted);">You have no food orders yet.</p>';
                 return;
             }
 
             orders.forEach(o => {
                 const itemsParsed = JSON.parse(o.items).map(i => `${i.qty}x ${i.name}`).join(', ');
                 container.innerHTML += `
-                    <div class="booking-item" style="border-bottom: 1px solid var(--border-color); padding: 15px 0; display:flex; justify-content:space-between;">
+                    <div class="booking-item" style="display:flex; justify-content:space-between;">
                         <div>
                             <h4>Order #${o.id}</h4>
                             <p style="font-size: 14px;">${itemsParsed}</p>
-                            <p style="font-size: 12px; color: var(--text-muted);">${o.date}</p>
+                            <p style="font-size: 12px; color: var(--text-muted);">${o.date} ${o.room ? '| Room ' + o.room : ''}</p>
                         </div>
                         <div style="text-align: right;">
                             <span class="booking-status badge-${o.status}">${o.status.toUpperCase()}</span><br>
@@ -117,16 +248,41 @@
             });
         }
 
-        function switchTab(tabName, btn) {
-            document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.sidebar-menu button').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-            btn.classList.add('active');
-
-            if (tabName === 'foodorders') loadMyFoodOrders(); // NEW
+        // === 3. PROFILE & SECURITY ===
+        async function loadProfile() {
+            const response = await fetch(`${API_URL}/profile`, { credentials: 'include' });
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('profileEmail').value = data.email || '';
+                document.getElementById('profilePhone').value = data.phone || '';
+            }
         }
 
-        // ... Call functions on load ...
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch(`${API_URL}/profile`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ email: document.getElementById('profileEmail').value, phone: document.getElementById('profilePhone').value })
+            });
+            if (res.ok) showToast('✅ Profile updated!', true);
+            else showToast('❌ Failed to update', false);
+        });
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch(`${API_URL}/change-password`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ current_password: document.getElementById('currentPassword').value, new_password: document.getElementById('newPassword').value })
+            });
+            const data = await res.json();
+            if (res.ok) { showToast('✅ Password changed!', true); document.getElementById('passwordForm').reset(); }
+            else { showToast(`❌ ${data.error}`, false); }
+        });
+
+        // Init
+        checkAuth();
+        loadBookings();
+        loadProfile();
     </script>
 </body>
 </html>
