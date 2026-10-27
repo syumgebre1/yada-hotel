@@ -561,3 +561,17 @@ def submit_contact():
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+# ===== RESTORED SINGLE ROOM ROUTE =====
+@app.route('/api/rooms/<int:room_id>', methods=['GET'])
+def get_room(room_id):
+    room = db.session.get(Room, room_id)
+    if not room: return jsonify({'error': 'Room not found'}), 404
+    images = [img.image_filename for img in room.images]
+    if not images: images = [room.image_filename]
+    return jsonify({
+        'id': room.id, 'room_number': room.room_number, 'room_type': room.room_type, 
+        'price': room.price, 'description': room.description, 'available': room.available, 
+        'image_filename': room.image_filename, 'images': images, 
+        'is_featured': room.is_featured, 'amenities': room.amenities
+    }), 200
