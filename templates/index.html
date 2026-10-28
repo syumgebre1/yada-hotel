@@ -3,118 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YADA HOTEL - Home</title>
+    <title>YADA HOTEL - Welcome</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#e6b800">
-    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <link rel="apple-touch-icon" href="/static/icon-192.jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
     <style>
-        .logo img { height: 50px; width: auto; object-fit: contain; }
-        .hero { background: linear-gradient(135deg, #1a3a5c 0%, #2a5a8a 50%, #1a3a5c 100%); border-radius: 20px; padding: 80px 40px; text-align: center; color: white; margin-bottom: 40px; box-shadow: 0 10px 40px rgba(26, 58, 92, 0.2); position: relative; overflow: hidden; }
-        .hero::before { content: '\f594'; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; font-size: 250px; opacity: 0.05; right: -30px; bottom: -80px; transform: rotate(-10deg); }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 700; color: #ffffff; margin-bottom: 15px; position: relative; z-index: 1; }
-        .hero .subtitle { font-size: 22px; color: #6ab0e6; margin-bottom: 10px; position: relative; z-index: 1; letter-spacing: 4px; }
-        .hero .tagline { font-size: 18px; color: #c3d9e8; margin-bottom: 30px; position: relative; z-index: 1; }
-        .hero .btn-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin: -30px 20px 30px 20px; position: relative; z-index: 2; }
-        .stat-card { background: var(--card-bg); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 8px 32px rgba(26, 58, 92, 0.1); border: 1px solid rgba(26, 58, 92, 0.05); transition: transform 0.3s; }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-card .number { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: #2a5a8a; }
-        .stat-card .label { font-size: 14px; color: var(--text-muted); font-weight: 500; }
-        .about-section { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin: 40px 0; align-items: center; }
-        .about-image { background: linear-gradient(135deg, #1a3a5c, #2a5a8a); border-radius: 20px; padding: 40px; text-align: center; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
-        .about-image .big-emoji { font-size: 80px; }
-        .about-text h2 { font-family: 'Playfair Display', serif; color: var(--card-title); font-size: 32px; margin-bottom: 15px; }
-        .about-text p { color: var(--text-muted); line-height: 1.8; margin-bottom: 15px; }
-        .about-text .features-list { list-style: none; padding: 0; }
-        .about-text .features-list li { padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; color: var(--text-color); }
-        .about-text .features-list li i { color: #e6b800; width: 20px; text-align: center; }
-        .book-banner { text-align: center; margin: 40px 0; padding: 50px 40px; background: linear-gradient(135deg, #1a3a5c, #2a5a8a); border-radius: 20px; box-shadow: 0 10px 30px rgba(26, 58, 92, 0.3); }
-        .book-banner h2 { color: #ffffff; font-size: 32px; font-family: 'Playfair Display', serif; }
-        .book-banner p { color: #c3d9e8; font-size: 18px; margin: 15px 0; }
-        .featured-section { margin: 40px 0; }
-        .featured-section h2 { font-family: 'Playfair Display', serif; color: var(--card-title); font-size: 32px; text-align: center; margin-bottom: 30px; }
-        .featured-swiper { padding: 20px 10px; }
-        .featured-card { background: var(--card-bg); border-radius: 15px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; }
-        .featured-card img { width: 100%; height: 200px; object-fit: cover; }
-        .featured-card .info { padding: 20px; }
-        .featured-card h3 { color: var(--card-title); margin-bottom: 10px; }
-        .lang-select { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: var(--navbar-text); padding: 5px; border-radius: 5px; font-family: 'Poppins', sans-serif; cursor: pointer; margin-left: 10px; }
-        .lang-select option { color: black; }
+        /* ... (Existing styles remain) ... */
+        .logo img { height: 55px; width: 55px; object-fit: contain; border-radius: 8px; margin-right: 10px; }
+        .logo-text { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #ffffff; }
+        .logo-text span { color: #6ab0e6; font-weight: 300; }
+        
+        .hero { background: linear-gradient(rgba(26, 58, 92, 0.85), rgba(26, 58, 92, 0.95)), url('https://images.unsplash.com/photo-1542314831-c6a4d1424b6b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover; border-radius: 0 0 50px 50px; padding: 120px 20px; text-align: center; color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 700; color: #ffffff; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); }
+        .hero p { font-size: 22px; color: #e6b800; margin-bottom: 40px; font-weight: 300; letter-spacing: 2px; }
+        
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin: -60px 20px 50px 20px; position: relative; z-index: 10; }
+        .feature-card { background: var(--card-bg); border-radius: 20px; padding: 40px 20px; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.1); transition: transform 0.3s; border-bottom: 4px solid #e6b800; }
+        .feature-card:hover { transform: translateY(-10px); }
+        .feature-card i { font-size: 45px; color: #e6b800; margin-bottom: 20px; background: rgba(230, 184, 0, 0.1); padding: 20px; border-radius: 50%; }
+        .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--card-title); margin-bottom: 10px; }
+        .feature-card p { color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+        
+        .food-special { display: flex; background: var(--card-bg); border-radius: 20px; overflow: hidden; margin: 50px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+        .food-special img { width: 40%; object-fit: cover; }
+        .food-special .content { padding: 40px; display: flex; flex-direction: column; justify-content: center; }
+        .food-special .badge { background: #e74c3c; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 15px; width: fit-content; }
+        .food-special h2 { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--card-title); margin-bottom: 10px; }
+        .food-special p { color: var(--text-muted); margin-bottom: 20px; }
+        .food-special .price { font-size: 28px; font-weight: bold; color: #2a5a8a; }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 42px; }
+            .food-special { flex-direction: column; }
+            .food-special img { width: 100%; height: 200px; }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="logo">
-            <!-- ABSOLUTE PATH USED HERE -->
-            <img src="/static/logo.jpg" alt="YADA HOTEL" style="height: 50px; width: 50px; object-fit: contain; border-radius: 8px;">
+            <img src="/static/logo.jpg" alt="YADA HOTEL">
+            <div class="logo-text">YADA <span>HOTEL</span></div>
         </a>
         <div class="navbar-links">
-            <a href="/" data-i18n="home">Home</a>
-            <a href="/rooms" data-i18n="rooms">Rooms</a>
-            <a href="/restaurant" data-i18n="restaurant">Restaurant</a>
-            <a href="/gallery" data-i18n="gallery">Gallery</a>
-            <a href="/dashboard" data-i18n="dashboard">Dashboard</a>
-            <a href="/contact" data-i18n="contact">Contact Us</a>
-            <a href="/admin" id="adminNavBtn" style="display:none; background: #e6b800; color: #1a3a5c; font-weight: bold; padding: 5px 15px; border-radius: 20px;"><i class="fa-solid fa-user-tie"></i> Admin Panel</a>
-            <a href="/login" id="authLink" data-i18n="login">Login</a>
-            <select class="lang-select" id="langToggle" onchange="changeLanguage(this.value)"><option value="en">EN</option><option value="am">አማ</option></select>
+            <a href="/">Home</a>
+            <a href="/rooms">Rooms</a>
+            <a href="/restaurant">Restaurant</a>
+            <a href="/gallery">Gallery</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/admin" id="adminNavBtn" style="display:none; background: #e6b800; color: #1a3a5c; font-weight: bold; padding: 5px 15px; border-radius: 20px;"><i class="fa-solid fa-user-tie"></i> Admin</a>
+            <a href="/login" id="authLink">Login</a>
             <button class="nav-theme-toggle" id="themeBtn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
         </div>
     </nav>
 
+    <div class="hero">
+        <h1>Experience YADA Hotel</h1>
+        <p>Luxury • Comfort • Ethiopian Hospitality</p>
+        <div class="btn-group" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a href="/rooms" class="btn btn-gold" style="font-size: 18px; padding: 16px 40px;"><i class="fa-solid fa-bed"></i> Book a Room</a>
+            <a href="/restaurant" class="btn btn-gold" style="font-size: 18px; padding: 16px 40px; background: transparent; border: 2px solid #e6b800; color: #e6b800;"><i class="fa-solid fa-utensils"></i> Order Food</a>
+        </div>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="fa-solid fa-bed"></i>
+            <h3>Luxury Rooms</h3>
+            <p>Choose from our selection of 13 comfortable rooms, from Standard to Presidential Suites.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fa-solid fa-utensils"></i>
+            <h3>Room Service</h3>
+            <p>Order delicious Ethiopian and international cuisine directly to your room with our online menu.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fa-solid fa-chair"></i>
+            <h3>Table Reservations</h3>
+            <p>Reserve a table in our restaurant for a beautiful dining experience with family and friends.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fa-solid fa-camera-retro"></i>
+            <h3>Beautiful Gallery</h3>
+            <p>Explore the beauty of YADA Hotel through our curated gallery of photos.</p>
+        </div>
+    </div>
+
     <div class="container">
-        <div class="hero">
-            <p class="subtitle" data-i18n="hero_subtitle"><i class="fa-solid fa-sparkles"></i> Welcome to</p>
-            <h1 data-i18n="hero_title">YADA HOTEL</h1>
-            <p class="tagline" data-i18n="hero_tagline">Stay • Relax — Experience Luxury in the Heart of the City</p>
-            <div class="btn-group">
-                <a href="/rooms" class="btn btn-gold" style="font-size: 18px; padding: 16px 40px;"><i class="fa-solid fa-bed"></i> <span data-i18n="btn_view_rooms">View Rooms</span></a>
-                <a href="/booking" class="btn btn-gold" style="font-size: 18px; padding: 16px 40px;"><i class="fa-regular fa-calendar-check"></i> <span data-i18n="btn_book_now">Book Now</span></a>
+        <!-- DYNAMIC TODAY'S SPECIAL -->
+        <div id="foodSpecialSection" style="display: none;">
+            <div class="food-special">
+                <img id="specialFoodImg" src="" alt="Today's Special">
+                <div class="content">
+                    <span class="badge"><i class="fa-solid fa-fire"></i> Today's Special</span>
+                    <h2 id="specialFoodName">Loading...</h2>
+                    <p id="specialFoodDesc"></p>
+                    <div class="price" id="specialFoodPrice"></div>
+                    <a href="/restaurant" class="btn btn-gold" style="margin-top: 20px; width: fit-content;">Order Now</a>
+                </div>
             </div>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card"><div class="number">13</div><div class="label" data-i18n="stat_rooms">Luxurious Rooms</div></div>
-            <div class="stat-card"><div class="number">24/7</div><div class="label" data-i18n="stat_service">Room Service</div></div>
-            <div class="stat-card"><div class="number"><i class="fa-solid fa-star" style="color: #e6b800;"></i> 4.8</div><div class="label" data-i18n="stat_rating">Guest Rating</div></div>
-            <div class="stat-card"><div class="number">500+</div><div class="label" data-i18n="stat_guests">Happy Guests</div></div>
-        </div>
-
-        <div class="featured-section" id="featuredSection" style="display: none;">
-            <h2><i class="fa-solid fa-star" style="color: #e6b800;"></i> <span data-i18n="featured_title">Featured Rooms</span></h2>
+        <!-- DYNAMIC FEATURED ROOMS -->
+        <div class="featured-section" id="featuredSection" style="display: none; margin: 50px 0;">
+            <h2 style="font-family: 'Playfair Display', serif; color: var(--card-title); font-size: 36px; text-align: center; margin-bottom: 30px;">Featured Rooms</h2>
             <div class="swiper featured-swiper">
                 <div class="swiper-wrapper" id="featuredContainer"></div>
                 <div class="swiper-pagination"></div>
             </div>
         </div>
 
-        <div class="about-section">
-            <div class="about-image">
-                <div class="big-emoji"><i class="fa-solid fa-hotel"></i></div>
-                <p data-i18n="about_img_text">Experience the perfect blend of comfort, luxury, and Ethiopian hospitality.</p>
-            </div>
-            <div class="about-text">
-                <h2 data-i18n="about_title">About YADA Hotel</h2>
-                <p data-i18n="about_desc">Welcome to YADA Hotel, where luxury meets comfort in the heart of the city. Our hotel offers a unique experience with world-class amenities and personalized service.</p>
-                <ul class="features-list">
-                    <li><i class="fa-solid fa-bed"></i> <strong data-i18n="feat_rooms">13 Luxurious Rooms</strong> — Standard, Deluxe, and Suites</li>
-                    <li><i class="fa-solid fa-bell-concierge"></i> <strong data-i18n="feat_service">24/7 Service</strong> — Room service and concierge</li>
-                    <li><i class="fa-solid fa-location-dot"></i> <strong data-i18n="feat_location">Prime Location</strong> — Close to major attractions</li>
-                    <li><i class="fa-solid fa-wifi"></i> <strong data-i18n="feat_wifi">Free WiFi</strong> — Stay connected throughout</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="book-banner">
-            <h2><i class="fa-regular fa-gem"></i> <span data-i18n="banner_title">Book Your Dream Stay</span></h2>
-            <p data-i18n="banner_desc">Check availability and book your room today!</p>
-            <a href="/booking" class="btn btn-gold" style="font-size: 18px; padding: 16px 50px; margin-top: 10px;" data-i18n="btn_book_now">Book Now</a>
+        <div class="book-banner" style="text-align: center; margin: 50px 0; padding: 60px 20px; background: linear-gradient(135deg, #1a3a5c, #2a5a8a); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <h2 style="color: #ffffff; font-size: 36px; font-family: 'Playfair Display', serif;">Ready to experience luxury?</h2>
+            <p style="color: #c3d9e8; font-size: 18px; margin: 15px 0 30px;">Book your stay today and enjoy the best of Ethiopian hospitality.</p>
+            <a href="/booking" class="btn btn-gold" style="font-size: 20px; padding: 18px 60px;">Book Now</a>
         </div>
     </div>
+
+    <footer style="background: #1a1a2e; color: white; padding: 60px 20px 30px; text-align: center; margin-top: 50px;">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px;">
+            <img src="/static/logo.jpg" alt="YADA HOTEL" style="height: 60px; width: 60px; border-radius: 10px;">
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; margin: 0;">YADA HOTEL</h2>
+        </div>
+        <p style="color: #888; margin-bottom: 20px;">Ethiopian Hospitality at its Finest</p>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 30px;">
+            <a href="/rooms" style="color: #e6b800; text-decoration: none;">Rooms</a>
+            <a href="/restaurant" style="color: #e6b800; text-decoration: none;">Restaurant</a>
+            <a href="/gallery" style="color: #e6b800; text-decoration: none;">Gallery</a>
+            <a href="/contact" style="color: #e6b800; text-decoration: none;">Contact</a>
+        </div>
+        <p style="color: #555; font-size: 14px;">&copy; 2026 YADA HOTEL. All rights reserved.</p>
+    </footer>
 
     <a href="#" id="whatsappBtn" class="whatsapp-float" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
 
@@ -124,28 +147,6 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('/static/service-worker.js'); });
         }
-
-        const translations = {
-            en: { home: "Home", rooms: "Rooms", restaurant: "Restaurant", gallery: "Gallery", dashboard: "Dashboard", contact: "Contact Us", login: "Login", logout: "Logout", hero_subtitle: "Welcome to", hero_title: "YADA HOTEL", hero_tagline: "Stay • Relax — Experience Luxury in the Heart of the City", btn_view_rooms: "View Rooms", btn_book_now: "Book Now", stat_rooms: "Luxurious Rooms", stat_service: "Room Service", stat_rating: "Guest Rating", stat_guests: "Happy Guests", featured_title: "Featured Rooms", about_title: "About YADA Hotel", about_desc: "Welcome to YADA Hotel...", about_img_text: "Experience the perfect blend...", feat_rooms: "13 Luxurious Rooms", feat_service: "24/7 Service", feat_location: "Prime Location", feat_wifi: "Free WiFi", banner_title: "Book Your Dream Stay", banner_desc: "Check availability and book your room today!" },
-            am: { home: "መነሻ", rooms: "ክፍሎች", restaurant: "ምግብ ቤት", gallery: "ጋለሪ", dashboard: "ዳሽቦርድ", contact: "አግኙን", login: "ግባ", logout: "ውጣ", hero_subtitle: "እንኳን ደህና መጡ", hero_title: "ያዳ ሆቴል", hero_tagline: "ቆዩ • ዘና ይበሉ — በከተማው እምብርት የቅንጦት ልምድ", btn_view_rooms: "ክፍሎችን ይመልከቱ", btn_book_now: "አሁን ይያዙ", stat_rooms: "የቅንጦት ክፍሎች", stat_service: "የክፍል አገልግሎት", stat_rating: "የእንግዳ ደረጃ", stat_guests: "ደስተኛ እንግዶች", featured_title: "የተመረጡ ክፍሎች", about_title: "ስለ ያዳ ሆቴል", about_desc: "ወደ ያዳ ሆቴል እንኳን በደህና መጡ...", about_img_text: "ፍጹም የሆነ የምቾት...", feat_rooms: "13 የቅንጦት ክፍሎች", feat_service: "24/7 አገልግሎት", feat_location: "ጥሩ ቦታ", feat_wifi: "ነፃ ዋይፋይ", banner_title: "የህልምዎን ቆይታ ይያዙ", banner_desc: "ተገኝነትን ያረጋግጡ..." }
-        };
-
-        function changeLanguage(lang) {
-            localStorage.setItem('language', lang);
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (translations[lang][key]) el.textContent = translations[lang][key];
-            });
-            const authLink = document.getElementById('authLink');
-            if(authLink) {
-                const user = localStorage.getItem('user');
-                if(user) authLink.textContent = translations[lang].logout;
-                else authLink.textContent = translations[lang].login;
-            }
-        }
-        const savedLang = localStorage.getItem('language') || 'en';
-        document.getElementById('langToggle').value = savedLang;
-        if (savedLang !== 'en') changeLanguage(savedLang);
 
         if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
         function toggleTheme() {
@@ -161,14 +162,12 @@
             const authLink = document.getElementById('authLink');
             const adminBtn = document.getElementById('adminNavBtn');
             if (user) {
-                authLink.textContent = savedLang === 'am' ? 'ውጣ' : 'Logout'; 
-                authLink.href = '#';
+                authLink.textContent = 'Logout'; authLink.href = '#';
                 authLink.onclick = function(e) { e.preventDefault(); localStorage.removeItem('user'); window.location.href = '/login'; };
                 const uObj = JSON.parse(user);
                 if(uObj.username === 'admin' && adminBtn) adminBtn.style.display = 'inline-block';
             } else {
-                authLink.textContent = translations[savedLang].login;
-                authLink.href = '/login'; authLink.onclick = null;
+                authLink.textContent = 'Login'; authLink.href = '/login'; authLink.onclick = null;
                 if(adminBtn) adminBtn.style.display = 'none';
             }
         }
@@ -183,6 +182,23 @@
             } catch(e) { console.error("Could not load settings", e); }
         }
 
+        async function loadFoodSpecial() {
+            try {
+                const res = await fetch('/api/menu');
+                const items = await res.json();
+                const special = items.find(i => i.is_special);
+                
+                if (special) {
+                    document.getElementById('foodSpecialSection').style.display = 'block';
+                    document.getElementById('specialFoodName').textContent = special.name;
+                    document.getElementById('specialFoodDesc').textContent = special.description || 'Delicious meal prepared by our chef.';
+                    document.getElementById('specialFoodPrice').textContent = `${special.price.toLocaleString()} ETB`;
+                    const img = special.image_filename ? `/static/uploads/${special.image_filename}` : 'https://via.placeholder.com/600x400?text=Special+Food';
+                    document.getElementById('specialFoodImg').src = img;
+                }
+            } catch(e) { console.error(e); }
+        }
+
         async function loadFeaturedRooms() {
             try {
                 const res = await fetch('/api/rooms');
@@ -192,22 +208,22 @@
                     document.getElementById('featuredSection').style.display = 'block';
                     const container = document.getElementById('featuredContainer');
                     featured.forEach(room => {
-                        const img = room.images.length > 0 ? `/static/uploads/${room.images[0]}` : 'https://via.placeholder.com/400x200?text=Room+Image';
+                        const img = room.images.length > 0 ? `/static/uploads/${room.images[0]}` : 'https://via.placeholder.com/400x300?text=Room+Image';
                         container.innerHTML += `
                             <div class="swiper-slide">
-                                <div class="featured-card">
-                                    <img src="${img}" onerror="this.src='https://via.placeholder.com/400x200?text=Room+Image'">
-                                    <div class="info">
-                                        <h3>Room ${room.room_number}</h3>
-                                        <p style="color: #e6b800; font-weight: bold; margin: 5px 0;">${room.price.toLocaleString()} ETB / night</p>
-                                        <a href="/booking?room_id=${room.id}" class="btn btn-gold btn-small" style="margin-top: 10px;">Book Now</a>
+                                <div class="featured-card" style="background: var(--card-bg); border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;">
+                                    <img src="${img}" style="width: 100%; height: 250px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/400x300?text=Room+Image'">
+                                    <div style="padding: 25px;">
+                                        <h3 style="font-family: 'Playfair Display', serif; color: var(--card-title); margin-bottom: 10px;">Room ${room.room_number}</h3>
+                                        <p style="color: #e6b800; font-weight: bold; font-size: 20px; margin-bottom: 15px;">${room.price.toLocaleString()} ETB / night</p>
+                                        <a href="/booking?room_id=${room.id}" class="btn btn-gold" style="width: 100%;">Book Now</a>
                                     </div>
                                 </div>
                             </div>
                         `;
                     });
                     new Swiper('.featured-swiper', {
-                        slidesPerView: 1, spaceBetween: 20, pagination: { el: '.swiper-pagination', clickable: true },
+                        slidesPerView: 1, spaceBetween: 25, pagination: { el: '.swiper-pagination', clickable: true },
                         breakpoints: { 640: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
                     });
                 }
@@ -216,6 +232,7 @@
 
         checkAuth();
         loadSiteSettings();
+        loadFoodSpecial();
         loadFeaturedRooms();
     </script>
 </body>
