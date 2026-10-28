@@ -214,6 +214,12 @@ def get_room(room_id):
     if not images: images = [room.image_filename]
     return jsonify({'id': room.id, 'room_number': room.room_number, 'room_type': room.room_type, 'price': room.price, 'description': room.description, 'available': room.available, 'image_filename': room.image_filename, 'images': images, 'is_featured': room.is_featured, 'amenities': room.amenities}), 200
 
+# THIS IS THE CRUCIAL ROUTE YOU WERE MISSING
+@app.route('/api/reviews/<int:room_id>', methods=['GET'])
+def get_room_reviews(room_id):
+    reviews = Review.query.filter_by(room_id=room_id).order_by(Review.created_at.desc()).all()
+    return jsonify([{'id': r.id, 'author': r.author.username, 'rating': r.rating, 'comment': r.comment, 'date': r.created_at.strftime('%Y-%m-%d')} for r in reviews]), 200
+
 @app.route('/api/menu', methods=['GET'])
 def get_menu():
     items = MenuItem.query.all()
@@ -307,7 +313,6 @@ def remove_from_cart(cart_id):
         return jsonify({'message': 'Removed'}), 200
     return jsonify({'error': 'Not found'}), 404
 
-# ===== INSTANT CHECKOUT (NO EMOJIS) =====
 @app.route('/api/cart/checkout', methods=['POST'])
 @api_login_required
 def checkout():
