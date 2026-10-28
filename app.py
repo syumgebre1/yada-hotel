@@ -112,7 +112,6 @@ def init_db():
         create_data()
         print("Database initialized!")
 
-# ===== HTML PAGE ROUTES =====
 @app.route('/')
 def home(): return render_template('index.html')
 @app.route('/rooms')
@@ -143,7 +142,6 @@ def not_found(e): return render_template('404.html'), 404
 @app.errorhandler(500)
 def server_error(e): return render_template('500.html'), 500
 
-# ===== AUTH APIs =====
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS': return '', 200
@@ -195,7 +193,6 @@ def change_password():
     db.session.commit()
     return jsonify({'message': 'Password changed successfully'}), 200
 
-# ===== PUBLIC DATA APIs =====
 @app.route('/api/rooms', methods=['GET'])
 def get_rooms():
     rooms = Room.query.all()
@@ -214,7 +211,6 @@ def get_room(room_id):
     if not images: images = [room.image_filename]
     return jsonify({'id': room.id, 'room_number': room.room_number, 'room_type': room.room_type, 'price': room.price, 'description': room.description, 'available': room.available, 'image_filename': room.image_filename, 'images': images, 'is_featured': room.is_featured, 'amenities': room.amenities}), 200
 
-# THIS IS THE CRUCIAL ROUTE YOU WERE MISSING
 @app.route('/api/reviews/<int:room_id>', methods=['GET'])
 def get_room_reviews(room_id):
     reviews = Review.query.filter_by(room_id=room_id).order_by(Review.created_at.desc()).all()
@@ -246,7 +242,6 @@ def check_availability():
         rooms_data.append({'id': r.id, 'room_number': r.room_number, 'room_type': r.room_type, 'price': r.price, 'description': r.description, 'image_filename': r.image_filename, 'images': images, 'is_featured': r.is_featured, 'amenities': r.amenities})
     return jsonify(rooms_data), 200
 
-# ===== USER BOOKING APIs =====
 @app.route('/api/bookings', methods=['POST'])
 @api_login_required
 def create_booking():
@@ -284,7 +279,6 @@ def cancel_booking(booking_id):
     db.session.commit()
     return jsonify({'message': 'Booking cancelled successfully'}), 200
 
-# ===== CART APIs =====
 @app.route('/api/cart', methods=['GET'])
 @api_login_required
 def get_cart():
@@ -339,7 +333,6 @@ def get_my_food_orders():
     orders = FoodOrder.query.filter_by(user_id=current_user.id).order_by(FoodOrder.created_at.desc()).all()
     return jsonify([{'id': o.id, 'total': o.total_price, 'room': o.room_number, 'items': o.items, 'status': o.status, 'date': o.created_at.strftime('%Y-%m-%d %H:%M')} for o in orders]), 200
 
-# ===== TABLE RESERVATION APIs =====
 @app.route('/api/table-reservations', methods=['POST'])
 @api_login_required
 def book_table():
@@ -352,7 +345,6 @@ def book_table():
     db.session.commit()
     return jsonify({'message': 'Table reservation requested!'}), 201
 
-# ===== GOLD/SILVER/RED FOOD RECEIPT PDF =====
 @app.route('/api/food-orders/<int:order_id>/receipt', methods=['GET'])
 @api_login_required
 def food_receipt(order_id):
@@ -403,7 +395,6 @@ def food_receipt(order_id):
     buffer.seek(0)
     return Response(buffer.getvalue(), mimetype="application/pdf", headers={"Content-Disposition": f"attachment; filename=Food_Receipt_{order.id}.pdf"})
 
-# ===== GALLERY APIs =====
 @app.route('/api/gallery', methods=['GET'])
 def get_gallery():
     images = GalleryImage.query.order_by(GalleryImage.created_at.desc()).all()
@@ -434,7 +425,6 @@ def admin_delete_gallery(image_id):
     db.session.commit()
     return jsonify({'message': 'Image deleted'}), 200
 
-# ===== ADMIN APIs =====
 @app.route('/api/admin/stats', methods=['GET'])
 @admin_required
 def admin_stats():

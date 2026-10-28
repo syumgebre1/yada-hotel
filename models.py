@@ -16,8 +16,8 @@ class User(UserMixin, db.Model):
     bookings = db.relationship('Booking', backref='user', lazy=True)
     reviews = db.relationship('Review', backref='author', lazy=True)
     cart_items = db.relationship('CartItem', backref='user', lazy=True)
-    # NEW: Relationship for food orders
-    food_orders = db.relationship('FoodOrder', backref='user', lazy=True) 
+    # THIS IS THE CRUCIAL LINK FOR FOOD ORDERS
+    food_orders = db.relationship('FoodOrder', backref='user', lazy=True)
 
 class Room(db.Model):
     __tablename__ = 'rooms'
