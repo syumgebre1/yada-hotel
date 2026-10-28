@@ -26,73 +26,46 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
+        <a href="/" class="navbar-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;">
+        </a>
         <div class="navbar-links">
-            <a href="/" data-i18n="home">Home</a>
-            <a href="/rooms" data-i18n="rooms">Rooms</a>
-            <a href="/restaurant" data-i18n="restaurant">Restaurant</a>
-            <a href="/dashboard" data-i18n="dashboard">Dashboard</a>
-            <a href="/contact" data-i18n="contact">Contact Us</a>
-            <a href="/admin" id="adminNavBtn" style="display:none; background: #e6b800; color: #1a3a5c; font-weight: bold; padding: 5px 15px; border-radius: 20px;"><i class="fa-solid fa-user-tie"></i> Admin Panel</a>
-            <a href="/login" id="authLink" data-i18n="login">Login</a>
-            <select class="lang-select" id="langToggle" onchange="changeLanguage(this.value)" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px; border-radius: 5px; margin-right: 10px; cursor: pointer;"><option value="en" style="color:black;">EN</option><option value="am" style="color:black;">አማ</option></select>
+            <a href="/">Home</a>
+            <a href="/rooms">Rooms</a>
+            <a href="/restaurant">Restaurant</a>
+            <a href="/gallery">Gallery</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/contact">Contact Us</a>
+            <a href="/admin" id="adminNavBtn" style="display:none; background: #e6b800; color: #1a3a5c; font-weight: bold; padding: 5px 15px; border-radius: 20px;"><i class="fa-solid fa-user-tie"></i> Admin</a>
+            <a href="/login" id="authLink">Login</a>
             <button class="nav-theme-toggle" id="themeBtn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
         </div>
     </nav>
 
     <div class="container">
         <div class="hero" style="padding: 30px 20px;">
-            <h1 style="font-size: 32px;"><i class="fa-solid fa-bed"></i> <span data-i18n="our_rooms">Our Rooms</span></h1>
-            <p data-i18n="rooms_desc">Choose from our selection of comfortable rooms.</p>
+            <h1 style="font-size: 32px;"><i class="fa-solid fa-bed"></i> Our Rooms</h1>
+            <p>Choose from our selection of comfortable rooms.</p>
         </div>
         
         <div class="filter-bar">
             <input type="date" id="filterCheckIn">
             <input type="date" id="filterCheckOut">
             <select id="filterType">
-                <option value="all" data-i18n="all_types">All Room Types</option>
+                <option value="all">All Room Types</option>
                 <option value="Standard">Standard</option>
                 <option value="Deluxe">Deluxe</option>
                 <option value="Suite">Suite</option>
             </select>
-            <button onclick="loadRooms()"><i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="search">Search Rooms</span></button>
+            <button onclick="loadRooms()"><i class="fa-solid fa-magnifying-glass"></i> Search Rooms</button>
         </div>
         
         <div id="roomContainer" class="room-grid"></div>
     </div>
 
-    <a href="https://wa.me/251911122112?text=Hello%20YADA%20Hotel,%20I%20have%20a%20question." class="whatsapp-float" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
-
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        // Translation Logic
-        const translations = {
-            en: { home: "Home", rooms: "Rooms", dashboard: "Dashboard", contact: "Contact Us", login: "Login", logout: "Logout", our_rooms: "Our Rooms", rooms_desc: "Choose from our selection of comfortable rooms.", all_types: "All Room Types", search: "Search Rooms", available: "Available", not_avail: "Not Available", book_now: "Book Now" },
-            am: { home: "መነሻ", rooms: "ክፍሎች", dashboard: "ዳሽቦርድ", contact: "አግኙን", login: "ግባ", logout: "ውጣ", our_rooms: "የእኛ ክፍሎች", rooms_desc: "ከምቹ ክፍሎቻችን ምርጫ ያድርጉ።", all_types: "ሁሉም የክፍል ዓይነቶች", search: "ክፍሎችን ይፈልጉ", available: "ይገኛል", not_avail: "አይገኝም", book_now: "አሁን ይያዙ" }
-        };
-        let currentLang = localStorage.getItem('language') || 'en';
-        
-        function changeLanguage(lang) {
-            localStorage.setItem('language', lang);
-            currentLang = lang;
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (translations[lang][key]) el.textContent = translations[lang][key];
-            });
-            const authLink = document.getElementById('authLink');
-            if(authLink) {
-                const user = localStorage.getItem('user');
-                if(user) authLink.textContent = translations[lang].logout;
-                else authLink.textContent = translations[lang].login;
-            }
-            loadRooms(); // Reload rooms to update the dynamic text inside cards
-        }
-
-        const langSelector = document.getElementById('langToggle');
-        if(langSelector) { langSelector.value = currentLang; if(currentLang !== 'en') changeLanguage(currentLang); }
-
-        // Dark Mode Logic
         if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
         function toggleTheme() {
             document.body.classList.toggle("dark-mode");
@@ -106,21 +79,17 @@
             if(icon && document.body.classList.contains("dark-mode")) icon.className = "fa-solid fa-sun";
         });
 
-        // Auth Logic
         function checkAuth() {
             const user = localStorage.getItem('user');
             const authLink = document.getElementById('authLink');
             const adminBtn = document.getElementById('adminNavBtn');
             if (user) {
-                authLink.textContent = translations[currentLang].logout;
-                authLink.href = '#';
+                authLink.textContent = 'Logout'; authLink.href = '#';
                 authLink.onclick = function(e) { e.preventDefault(); localStorage.removeItem('user'); window.location.href = '/login'; };
                 const uObj = JSON.parse(user);
                 if(uObj.username === 'admin' && adminBtn) adminBtn.style.display = 'inline-block';
             } else {
-                authLink.textContent = translations[currentLang].login;
-                authLink.href = '/login';
-                authLink.onclick = null;
+                authLink.textContent = 'Login'; authLink.href = '/login'; authLink.onclick = null;
                 if(adminBtn) adminBtn.style.display = 'none';
             }
         }
@@ -172,9 +141,6 @@
                 }
                 let featuredBadge = room.is_featured ? `<span style="position: absolute; top: 10px; right: 10px; background: #e6b800; color: #1a3a5c; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 10;"><i class="fa-solid fa-star"></i> Featured</span>` : '';
 
-                // Translate Available status
-                const availText = room.available ? translations[currentLang].available : translations[currentLang].not_avail;
-
                 const card = document.createElement('div');
                 card.className = 'room-card';
                 card.style.position = 'relative';
@@ -186,8 +152,8 @@
                     ${amenitiesHtml}
                     <p><strong>Price:</strong> <span class="price">${room.price.toLocaleString()} ETB</span>/night</p>
                     <p>${room.description || 'Comfortable room for your stay'}</p>
-                    <p class="available"><strong><i class="fa-solid fa-circle-check"></i> ${availText}</strong></p>
-                    <a href="/booking?room_id=${room.id}" class="btn btn-gold" style="width:100%; text-align:center; margin-top:10px;">${translations[currentLang].book_now}</a>
+                    <p class="available"><strong><i class="fa-solid fa-circle-check"></i> Available</strong></p>
+                    <a href="/booking?room_id=${room.id}" class="btn btn-gold" style="width:100%; text-align:center; margin-top:10px;">Book Now</a>
                     ${reviewsHtml}
                 `;
                 container.appendChild(card);

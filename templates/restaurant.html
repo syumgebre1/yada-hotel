@@ -33,11 +33,14 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
+        <a href="/" class="navbar-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;">
+        </a>
         <div class="navbar-links">
             <a href="/">Home</a>
             <a href="/rooms">Rooms</a>
             <a href="/restaurant">Restaurant</a>
+            <a href="/gallery">Gallery</a>
             <a href="/contact">Contact Us</a>
             <a href="/login" id="authLink">Login</a>
             <button class="nav-theme-toggle" id="themeBtn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
@@ -59,7 +62,6 @@
         <div id="menuContainer"></div>
     </div>
 
-    <!-- CART SIDEBAR -->
     <div class="cart-btn" onclick="toggleCart()">
         <i class="fa-solid fa-cart-shopping"></i>
         <div class="cart-badge" id="cartBadge">0</div>
@@ -74,7 +76,6 @@
             <p style="text-align: center; color: var(--text-muted);">Your cart is empty.</p>
         </div>
         <div class="cart-footer">
-            <!-- NEW: Room Service Input -->
             <div style="margin-bottom: 15px;">
                 <label style="font-size: 14px; font-weight: 600;">Deliver to Room (Optional)</label>
                 <input type="text" id="roomServiceInput" placeholder="e.g. 101" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--input-text); margin-top: 5px;">
@@ -84,7 +85,6 @@
         </div>
     </div>
 
-    <!-- TABLE RESERVATION MODAL -->
     <div class="modal" id="tableModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; justify-content:center; align-items:center;">
         <div class="modal-content" style="background:var(--card-bg); padding:30px; border-radius:15px; max-width:400px; width:90%;">
             <h3 style="margin-bottom: 20px; color: var(--card-title);"><i class="fa-solid fa-chair"></i> Reserve a Table</h3>
@@ -99,20 +99,6 @@
             </form>
         </div>
     </div>
-
-    <!-- LIVE CHAT WIDGET (Tawk.to Placeholder) -->
-    <script type="text/javascript">
-    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true;
-    // This is a test ID so the widget loads. Replace with your own ID later.
-    s1.src='https://embed.tawk.to/65a1b2c3d9e0e10af1ea8f2e/1hk2k9a5p'; 
-    s1.charset='UTF-8';
-    s1.setAttribute('crossorigin','*');
-    s0.parentNode.insertBefore(s1,s0);
-    })();
-    </script>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>

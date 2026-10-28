@@ -46,7 +46,9 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
+        <a href="/" class="navbar-brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;">
+        </a>
         <div class="navbar-links">
             <a href="/">Home</a>
             <a href="/rooms">Rooms</a>
@@ -67,9 +69,9 @@
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card"><div class="number" id="totalRooms">-</div><div class="label">Total Rooms</div></div>
             <div class="stat-card"><div class="number" id="availableRooms">-</div><div class="label">Available</div></div>
-            <div class="stat-card"><div class="number" id="totalBookings">-</div><div class="label">Total Bookings</div></div>
-            <div class="stat-card"><div class="number" id="totalRevenue">-</div><div class="label">Revenue (ETB)</div></div>
-            <div class="stat-card"><div class="number" id="totalGuests">-</div><div class="label">Total Guests</div></div>
+            <div class="stat-card booking"><div class="number" id="totalBookings">-</div><div class="label">Total Bookings</div></div>
+            <div class="stat-card revenue"><div class="number" id="totalRevenue">-</div><div class="label">Revenue (ETB)</div></div>
+            <div class="stat-card guest"><div class="number" id="totalGuests">-</div><div class="label">Total Guests</div></div>
         </div>
 
         <div class="chart-container">

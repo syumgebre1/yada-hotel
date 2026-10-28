@@ -12,10 +12,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
     <style>
-        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-        .logo-icon { font-size: 24px; background: linear-gradient(135deg, #2a5a8a, #4a8aba); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(42, 90, 138, 0.3); color: white; }
-        .logo-text { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #ffffff; }
-        .logo-text span { color: #6ab0e6; font-weight: 300; }
+        .logo img { height: 50px; width: auto; object-fit: contain; }
         .hero { background: linear-gradient(135deg, #1a3a5c 0%, #2a5a8a 50%, #1a3a5c 100%); border-radius: 20px; padding: 80px 40px; text-align: center; color: white; margin-bottom: 40px; box-shadow: 0 10px 40px rgba(26, 58, 92, 0.2); position: relative; overflow: hidden; }
         .hero::before { content: '\f594'; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; font-size: 250px; opacity: 0.05; right: -30px; bottom: -80px; transform: rotate(-10deg); }
         .hero h1 { font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 700; color: #ffffff; margin-bottom: 15px; position: relative; z-index: 1; }
@@ -47,27 +44,18 @@
         .featured-card h3 { color: var(--card-title); margin-bottom: 10px; }
         .lang-select { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: var(--navbar-text); padding: 5px; border-radius: 5px; font-family: 'Poppins', sans-serif; cursor: pointer; margin-left: 10px; }
         .lang-select option { color: black; }
-        
-        /* NEW: FOOD SPECIAL BANNER */
-        .food-special { display: flex; background: linear-gradient(135deg, #2a2a2a, #1a1a1a); border-radius: 20px; overflow: hidden; margin: 40px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: white; }
-        .food-special img { width: 40%; object-fit: cover; }
-        .food-special .content { padding: 40px; display: flex; flex-direction: column; justify-content: center; }
-        .food-special .badge { background: #e74c3c; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 15px; width: fit-content; }
-        .food-special h2 { font-family: 'Playfair Display', serif; font-size: 32px; margin-bottom: 10px; }
-        .food-special p { color: #ccc; margin-bottom: 20px; }
-        .food-special .price { font-size: 28px; font-weight: bold; color: #e6b800; }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="logo">
-            <div class="logo-icon"><i class="fa-solid fa-hotel"></i></div>
-            <div class="logo-text">YADA <span>HOTEL</span></div>
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL">
         </a>
         <div class="navbar-links">
             <a href="/" data-i18n="home">Home</a>
             <a href="/rooms" data-i18n="rooms">Rooms</a>
             <a href="/restaurant" data-i18n="restaurant">Restaurant</a>
+            <a href="/gallery" data-i18n="gallery">Gallery</a>
             <a href="/dashboard" data-i18n="dashboard">Dashboard</a>
             <a href="/contact" data-i18n="contact">Contact Us</a>
             <a href="/admin" id="adminNavBtn" style="display:none; background: #e6b800; color: #1a3a5c; font-weight: bold; padding: 5px 15px; border-radius: 20px;"><i class="fa-solid fa-user-tie"></i> Admin Panel</a>
@@ -93,19 +81,6 @@
             <div class="stat-card"><div class="number">24/7</div><div class="label" data-i18n="stat_service">Room Service</div></div>
             <div class="stat-card"><div class="number"><i class="fa-solid fa-star" style="color: #e6b800;"></i> 4.8</div><div class="label" data-i18n="stat_rating">Guest Rating</div></div>
             <div class="stat-card"><div class="number">500+</div><div class="label" data-i18n="stat_guests">Happy Guests</div></div>
-        </div>
-
-        <!-- NEW: TODAY'S SPECIAL SECTION ON HOMEPAGE -->
-        <div id="foodSpecialSection" style="display: none;">
-            <div class="food-special">
-                <img id="specialFoodImg" src="" alt="Today's Special">
-                <div class="content">
-                    <span class="badge"><i class="fa-solid fa-fire"></i> Today's Special</span>
-                    <h2 id="specialFoodName">Loading...</h2>
-                    <p id="specialFoodDesc"></p>
-                    <div class="price" id="specialFoodPrice"></div>
-                </div>
-            </div>
         </div>
 
         <div class="featured-section" id="featuredSection" style="display: none;">
@@ -150,8 +125,8 @@
         }
 
         const translations = {
-            en: { home: "Home", rooms: "Rooms", restaurant: "Restaurant", dashboard: "Dashboard", contact: "Contact Us", login: "Login", logout: "Logout", hero_subtitle: "Welcome to", hero_title: "YADA HOTEL", hero_tagline: "Stay • Relax — Experience Luxury in the Heart of the City", btn_view_rooms: "View Rooms", btn_book_now: "Book Now", stat_rooms: "Luxurious Rooms", stat_service: "Room Service", stat_rating: "Guest Rating", stat_guests: "Happy Guests", featured_title: "Featured Rooms", about_title: "About YADA Hotel", about_desc: "Welcome to YADA Hotel, where luxury meets comfort in the heart of the city. Our hotel offers a unique experience with world-class amenities and personalized service.", about_img_text: "Experience the perfect blend of comfort, luxury, and Ethiopian hospitality.", feat_rooms: "13 Luxurious Rooms", feat_service: "24/7 Service", feat_location: "Prime Location", feat_wifi: "Free WiFi", banner_title: "Book Your Dream Stay", banner_desc: "Check availability and book your room today!" },
-            am: { home: "መነሻ", rooms: "ክፍሎች", restaurant: "ምግብ ቤት", dashboard: "ዳሽቦርድ", contact: "አግኙን", login: "ግባ", logout: "ውጣ", hero_subtitle: "እንኳን ደህና መጡ", hero_title: "ያዳ ሆቴል", hero_tagline: "ቆዩ • ዘና ይበሉ — በከተማው እምብርት የቅንጦት ልምድ", btn_view_rooms: "ክፍሎችን ይመልከቱ", btn_book_now: "አሁን ይያዙ", stat_rooms: "የቅንጦት ክፍሎች", stat_service: "የክፍል አገልግሎት", stat_rating: "የእንግዳ ደረጃ", stat_guests: "ደስተኛ እንግዶች", featured_title: "የተመረጡ ክፍሎች", about_title: "ስለ ያዳ ሆቴል", about_desc: "ወደ ያዳ ሆቴል እንኳን በደህና መጡ፣ ቅንጦት ከምቾት ጋር በሚገናኝበት በከተማው እምብርት። ሆቴላችን ከዓለም አቀፍ ደረጃ አገልግሎቶች እና ግላዊ አገልግሎት ጋር ልዩ ልምድ ይሰጣል።", about_img_text: "ፍጹም የሆነ የምቾት፣ የቅንጦት እና የኢትዮጵያ እንግዳ ተቀባይነት ጥምረት ይለማመዱ።", feat_rooms: "13 የቅንጦት ክፍሎች", feat_service: "24/7 አገልግሎት", feat_location: "ጥሩ ቦታ", feat_wifi: "ነፃ ዋይፋይ", banner_title: "የህልምዎን ቆይታ ይያዙ", banner_desc: "ተገኝነትን ያረጋግጡ እና ክፍልዎን ዛሬ ይያዙ!" }
+            en: { home: "Home", rooms: "Rooms", restaurant: "Restaurant", gallery: "Gallery", dashboard: "Dashboard", contact: "Contact Us", login: "Login", logout: "Logout", hero_subtitle: "Welcome to", hero_title: "YADA HOTEL", hero_tagline: "Stay • Relax — Experience Luxury in the Heart of the City", btn_view_rooms: "View Rooms", btn_book_now: "Book Now", stat_rooms: "Luxurious Rooms", stat_service: "Room Service", stat_rating: "Guest Rating", stat_guests: "Happy Guests", featured_title: "Featured Rooms", about_title: "About YADA Hotel", about_desc: "Welcome to YADA Hotel...", about_img_text: "Experience the perfect blend...", feat_rooms: "13 Luxurious Rooms", feat_service: "24/7 Service", feat_location: "Prime Location", feat_wifi: "Free WiFi", banner_title: "Book Your Dream Stay", banner_desc: "Check availability and book your room today!" },
+            am: { home: "መነሻ", rooms: "ክፍሎች", restaurant: "ምግብ ቤት", gallery: "ጋለሪ", dashboard: "ዳሽቦርድ", contact: "አግኙን", login: "ግባ", logout: "ውጣ", hero_subtitle: "እንኳን ደህና መጡ", hero_title: "ያዳ ሆቴል", hero_tagline: "ቆዩ • ዘና ይበሉ — በከተማው እምብርት የቅንጦት ልምድ", btn_view_rooms: "ክፍሎችን ይመልከቱ", btn_book_now: "አሁን ይያዙ", stat_rooms: "የቅንጦት ክፍሎች", stat_service: "የክፍል አገልግሎት", stat_rating: "የእንግዳ ደረጃ", stat_guests: "ደስተኛ እንግዶች", featured_title: "የተመረጡ ክፍሎች", about_title: "ስለ ያዳ ሆቴል", about_desc: "ወደ ያዳ ሆቴል እንኳን በደህና መጡ...", about_img_text: "ፍጹም የሆነ የምቾት...", feat_rooms: "13 የቅንጦት ክፍሎች", feat_service: "24/7 አገልግሎት", feat_location: "ጥሩ ቦታ", feat_wifi: "ነፃ ዋይፋይ", banner_title: "የህልምዎን ቆይታ ይያዙ", banner_desc: "ተገኝነትን ያረጋግጡ..." }
         };
 
         function changeLanguage(lang) {
@@ -207,24 +182,6 @@
             } catch(e) { console.error("Could not load settings", e); }
         }
 
-        // NEW: Load the food special
-        async function loadFoodSpecial() {
-            try {
-                const res = await fetch('/api/menu');
-                const items = await res.json();
-                const special = items.find(i => i.is_special);
-                
-                if (special) {
-                    document.getElementById('foodSpecialSection').style.display = 'block';
-                    document.getElementById('specialFoodName').textContent = special.name;
-                    document.getElementById('specialFoodDesc').textContent = special.description || 'Delicious meal prepared by our chef.';
-                    document.getElementById('specialFoodPrice').textContent = `${special.price.toLocaleString()} ETB`;
-                    const img = special.image_filename ? `/static/uploads/${special.image_filename}` : 'https://via.placeholder.com/600x400?text=Special+Food';
-                    document.getElementById('specialFoodImg').src = img;
-                }
-            } catch(e) { console.error(e); }
-        }
-
         async function loadFeaturedRooms() {
             try {
                 const res = await fetch('/api/rooms');
@@ -259,7 +216,6 @@
         checkAuth();
         loadSiteSettings();
         loadFeaturedRooms();
-        loadFoodSpecial(); // Call the new function
     </script>
 </body>
 </html>
