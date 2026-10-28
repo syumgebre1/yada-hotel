@@ -112,6 +112,7 @@ def init_db():
         create_data()
         print("Database initialized!")
 
+# ===== HTML PAGE ROUTES =====
 @app.route('/')
 def home(): return render_template('index.html')
 @app.route('/rooms')
@@ -142,6 +143,7 @@ def not_found(e): return render_template('404.html'), 404
 @app.errorhandler(500)
 def server_error(e): return render_template('500.html'), 500
 
+# ===== AUTH APIs =====
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS': return '', 200
@@ -193,6 +195,7 @@ def change_password():
     db.session.commit()
     return jsonify({'message': 'Password changed successfully'}), 200
 
+# ===== PUBLIC DATA APIs =====
 @app.route('/api/rooms', methods=['GET'])
 def get_rooms():
     rooms = Room.query.all()
@@ -242,6 +245,7 @@ def check_availability():
         rooms_data.append({'id': r.id, 'room_number': r.room_number, 'room_type': r.room_type, 'price': r.price, 'description': r.description, 'image_filename': r.image_filename, 'images': images, 'is_featured': r.is_featured, 'amenities': r.amenities})
     return jsonify(rooms_data), 200
 
+# ===== USER BOOKING APIs =====
 @app.route('/api/bookings', methods=['POST'])
 @api_login_required
 def create_booking():
@@ -279,6 +283,7 @@ def cancel_booking(booking_id):
     db.session.commit()
     return jsonify({'message': 'Booking cancelled successfully'}), 200
 
+# ===== CART APIs =====
 @app.route('/api/cart', methods=['GET'])
 @api_login_required
 def get_cart():
@@ -333,6 +338,7 @@ def get_my_food_orders():
     orders = FoodOrder.query.filter_by(user_id=current_user.id).order_by(FoodOrder.created_at.desc()).all()
     return jsonify([{'id': o.id, 'total': o.total_price, 'room': o.room_number, 'items': o.items, 'status': o.status, 'date': o.created_at.strftime('%Y-%m-%d %H:%M')} for o in orders]), 200
 
+# ===== TABLE RESERVATION APIs =====
 @app.route('/api/table-reservations', methods=['POST'])
 @api_login_required
 def book_table():
@@ -345,6 +351,7 @@ def book_table():
     db.session.commit()
     return jsonify({'message': 'Table reservation requested!'}), 201
 
+# ===== GOLD/SILVER/RED FOOD RECEIPT PDF =====
 @app.route('/api/food-orders/<int:order_id>/receipt', methods=['GET'])
 @api_login_required
 def food_receipt(order_id):
@@ -395,6 +402,7 @@ def food_receipt(order_id):
     buffer.seek(0)
     return Response(buffer.getvalue(), mimetype="application/pdf", headers={"Content-Disposition": f"attachment; filename=Food_Receipt_{order.id}.pdf"})
 
+# ===== GALLERY APIs =====
 @app.route('/api/gallery', methods=['GET'])
 def get_gallery():
     images = GalleryImage.query.order_by(GalleryImage.created_at.desc()).all()
@@ -425,6 +433,7 @@ def admin_delete_gallery(image_id):
     db.session.commit()
     return jsonify({'message': 'Image deleted'}), 200
 
+# ===== ADMIN APIs =====
 @app.route('/api/admin/stats', methods=['GET'])
 @admin_required
 def admin_stats():
@@ -590,6 +599,41 @@ def admin_manage_room(room_id):
         if 'amenities' in data: room.amenities = data['amenities']
         db.session.commit()
         return jsonify({'message': 'Room updated'}), 200
+
+@app.route('/api/admin/menu', methods=['POST'])
+@admin_required
+def admin_add_menu():
+    name = request.form.get('name')
+    description = request.form.get('description')
+    price = request.form.get('price')
+    category = request.form.get('category')
+    is_special = True if request.form.get('is_special') == 'true' else False
+    
+    image_filename = None
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            image_filename = filename
+
+    new_item = MenuItem(name=name, description=description, price=price, category=category, image_filename=image_filename, is_special=is_special)
+    
+    if is_special:
+        MenuItem.query.update({MenuItem.is_special: False})
+        
+    db.session.add(new_item)
+    db.session.commit()
+    return jsonify({'message': 'Menu item added!'}), 201
+
+@app.route('/api/admin/menu/<int:item_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_menu(item_id):
+    item = db.session.get(MenuItem, item_id)
+    if not item: return jsonify({'error': 'Item not found'}), 404
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({'message': 'Item deleted'}), 200
 
 @app.route('/api/admin/export/bookings/pdf', methods=['GET'])
 @admin_required
