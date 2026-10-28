@@ -1,19 +1,17 @@
-from app import app, db
+from app import app
+from database import db
 from models import User
 from werkzeug.security import generate_password_hash
 
 with app.app_context():
-    # Check if admin already exists
     admin = User.query.filter_by(username='admin').first()
     
     if admin:
         print("Admin already exists. Updating password...")
-        # Generate a secure hash for the new password
         admin.password = generate_password_hash('YadaAdmin2026!')
         db.session.commit()
         print("Admin password updated successfully!")
     else:
-        # Create the admin user
         print("Creating new admin user...")
         hashed_password = generate_password_hash('YadaAdmin2026!')
         new_admin = User(
@@ -29,4 +27,3 @@ with app.app_context():
     print("Username: admin")
     print("Password: YadaAdmin2026!")
     print("===================================")
-    print("Please change this password after logging in.")

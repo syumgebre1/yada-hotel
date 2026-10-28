@@ -1,8 +1,6 @@
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
-
-db = SQLAlchemy()
+from database import db
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -13,10 +11,10 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(200), nullable=False)
     reset_token = db.Column(db.String(100), nullable=True)
     reset_token_expiration = db.Column(db.DateTime, nullable=True)
+    # Relationships
     bookings = db.relationship('Booking', backref='user', lazy=True)
     reviews = db.relationship('Review', backref='author', lazy=True)
     cart_items = db.relationship('CartItem', backref='user', lazy=True)
-    # THIS IS THE CRUCIAL LINK FOR FOOD ORDERS
     food_orders = db.relationship('FoodOrder', backref='user', lazy=True)
 
 class Room(db.Model):
@@ -30,6 +28,7 @@ class Room(db.Model):
     image_filename = db.Column(db.String(200), nullable=True, default='default_room.jpg')
     is_featured = db.Column(db.Boolean, default=False)
     amenities = db.Column(db.String(200), nullable=True, default="WiFi, TV, AC") 
+    # Relationships
     bookings = db.relationship('Booking', backref='room', lazy=True)
     reviews = db.relationship('Review', backref='room', lazy=True)
     images = db.relationship('RoomImage', backref='room', lazy=True, cascade="all, delete-orphan")
