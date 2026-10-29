@@ -1,0 +1,17 @@
+
+# Added by YADA Hotel security audit
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+*.bak
+*.before-*.bak
+.venv/
+venv/
+.DS_Store
+
+# Local hotel databases and backups
+instance/*.db
+instance/*.sqlite
+instance/*.sqlite3

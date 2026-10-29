@@ -1,3 +1,4 @@
+from pathlib import Path
 from flask import Flask, request, jsonify, session, render_template, Response, url_for
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -20,18 +21,20 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 
-load_dotenv()
-
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / '.env')
 app = Flask(__name__)
 
 # ===== SECURITY CONFIG =====
-app.secret_key = os.environ.get('SECRET_KEY', 'default-secret-key-for-dev')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+if not app.config['SECRET_KEY'] or len(app.config['SECRET_KEY']) < 32:
+    raise RuntimeError('Configure a strong SECRET_KEY in your environment.')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///yada_hotel.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # CHANGED TO FALSE: Set to True ONLY in production (PythonAnywhere HTTPS)
-app.config['SESSION_COOKIE_SECURE'] = False 
+app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_PATH'] = '/'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
@@ -782,4 +785,4 @@ def handle_bad_request(e):
 if __name__ == '__main__':
     init_db()
     is_debug = os.environ.get('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']
-    app.run(host='127.0.0.1', port=5002, debug=True)
+    app.run(host='127.0.0.1', port=5002, debug=is_debug)

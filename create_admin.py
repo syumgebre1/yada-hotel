@@ -27,5 +27,5 @@ with app.app_context():
 
     print("\n===================================")
     print("Username: admin")
-    print("Password: YadaAdmin2026!")
+    print("Admin password is not displayed for security.")
     print("===================================")
