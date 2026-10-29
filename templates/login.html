@@ -1,67 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YADA HOTEL - Login</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Login - Yada Hotel</title>
+    <style>
+        body { background-color: #0f0f0f; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: #1e1e1e; padding: 40px; border-radius: 15px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #333; }
+        .logo-container { margin-bottom: 20px; display: flex; justify-content: center; }
+        .logo-container img { max-width: 80px; height: auto; }
+        h2 { margin-bottom: 25px; font-weight: 600; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; box-sizing: border-box; background: #2a2a2a; color: white; font-size: 16px; }
+        input:focus { outline: none; border-color: #ffd700; }
+        button { background: #ffd700; color: black; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #e6c200; }
+        .forgot { text-align: right; display: block; margin-top: 10px; color: #888; text-decoration: none; font-size: 14px; }
+        .forgot:hover { color: #ffd700; }
+        .register-link { margin-top: 25px; display: block; color: #ccc; font-size: 14px; }
+        .register-link a { color: #ffd700; text-decoration: none; }
+        .register-link a:hover { text-decoration: underline; }
+        .error { color: #ff4c4c; margin-top: 15px; font-size: 14px; display: none; }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <a href="/" class="navbar-brand">
-            <!-- ABSOLUTE PATH USED HERE -->
-            <img src="/static/logo.jpg" alt="YADA HOTEL" style="height: 50px; width: 50px; object-fit: contain; border-radius: 8px;">
-        </a>
-        <div class="navbar-links">
-            <a href="/">Home</a>
-            <a href="/rooms">Rooms</a>
-            <a href="/login">Login</a>
-            <button class="nav-theme-toggle" id="themeBtn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+    <div class="login-box">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Yada Hotel Logo">
         </div>
-    </nav>
-    <div class="container">
-        <div style="max-width: 400px; margin: 40px auto;">
-            <div class="card">
-                <h2 style="text-align: center; color: var(--card-title); margin-bottom: 20px;"><i class="fa-solid fa-lock"></i> Login</h2>
-                <form id="loginForm">
-                    <div class="form-group"><label for="username">Username</label><input type="text" id="username" required></div>
-                    <div class="form-group"><label for="password">Password</label><input type="password" id="password" required></div>
-                    <div style="text-align: right; margin-bottom: 15px;"><a href="/forgot-password" style="color: #2a5a8a; font-size: 14px;">Forgot Password?</a></div>
-                    <button type="submit" class="btn btn-gold" style="width: 100%; padding: 12px;">Login</button>
-                </form>
-                <p style="text-align: center; margin-top: 15px;">Don't have an account? <a href="/register" style="color: #2a5a8a;">Register here</a></p>
-            </div>
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <a href="/forgot-password" class="forgot">Forgot Password?</a>
+            <button type="submit" id="submitBtn">Login</button>
+        </form>
+        <div id="errorMsg" class="error"></div>
+        
+        <div class="register-link">
+            Don't have an account? <a href="/register">Register here</a>
         </div>
     </div>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
     <script>
-        if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
-        function toggleTheme() {
-            document.body.classList.toggle("dark-mode");
-            const isDark = document.body.classList.contains("dark-mode");
-            localStorage.setItem("theme", isDark ? "dark" : "light");
-            const icon = document.querySelector("#themeBtn i");
-            if(icon) icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
-        }
-        function showToast(message, isSuccess = true) {
-            Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", style: { background: isSuccess ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
-        }
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const username = document.getElementById('username').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            const submitBtn = document.getElementById('submitBtn');
+            errorMsg.style.display = 'none';
+            submitBtn.textContent = "Logging in...";
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+
             try {
-                const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ username, password }) });
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                });
+
                 const data = await response.json();
+
                 if (response.ok) {
+                    // SAVE USER TO LOCAL STORAGE FOR ADMIN.HTML TO SEE
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    showToast('✅ Login successful! Redirecting...', true);
-                    setTimeout(() => { if (data.user.username === 'admin') window.location.href = '/admin'; else window.location.href = '/dashboard'; }, 1000);
-                } else { showToast(data.error || '❌ Login failed', false); }
-            } catch (error) { showToast('❌ Connection error.', false); }
+                    window.location.href = '/dashboard'; 
+                } else {
+                    errorMsg.textContent = data.error || "Invalid credentials";
+                    errorMsg.style.display = 'block';
+                    submitBtn.textContent = "Login";
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                errorMsg.textContent = "Connection error. Check server logs.";
+                errorMsg.style.display = 'block';
+                submitBtn.textContent = "Login";
+            }
         });
     </script>
 </body>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>YADA HOTEL - Book a Room</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -17,7 +18,7 @@
     </div>
 
     <nav class="navbar">
-        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
+        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.jpg') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;"></a>
         <div class="navbar-links">
             <a href="/">Home</a>
             <a href="/rooms">Rooms</a>
@@ -122,7 +123,7 @@
 
             try {
                 const response = await fetch(`${API_URL}/bookings`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }, credentials: 'include',
                     body: JSON.stringify(formData)
                 });
                 const data = await response.json();

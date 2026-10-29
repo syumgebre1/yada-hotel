@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Dashboard - Yada Hotel</title>
+
+    <style>
+        :root {
+            --background: #0f0f0f;
+            --surface: #1e1e1e;
+            --surface-light: #2a2a2a;
+            --gold: #ffd700;
+            --text: #ffffff;
+            --muted: #cccccc;
+            --border: #444444;
+            --danger: #ff4c4c;
+            --success: #4caf50;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            background: var(--surface);
+            padding: 15px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .header h1 {
+            margin: 0;
+            color: var(--gold);
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background: #e60000;
+        }
+
+        /* Client service navigation */
+        .client-services {
+            max-width: 1100px;
+            margin: 24px auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .client-services a {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .client-services a:hover,
+        .client-services a:focus-visible {
+            background: var(--gold);
+            color: #111111;
+            outline: none;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .welcome-box {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .welcome-box h2 {
+            color: var(--gold);
+            margin-top: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            min-width: 0;
+        }
+
+        .card h3 {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: var(--muted);
+        }
+
+        .admin-section {
+            display: none;
+            margin-top: 20px;
+            background: var(--surface-light);
+            border: 1px solid var(--gold);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .admin-section h2 {
+            color: var(--gold);
+            margin-top: 0;
+        }
+
+        .admin-button {
+            display: inline-block;
+            background: var(--gold);
+            color: #111111;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .admin-button:hover {
+            background: #e6c200;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .order-receipt-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: var(--gold);
+            text-decoration: underline;
+        }
+
+        li.booking-item {
+            background: var(--surface-light);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--gold);
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+        }
+
+        .status-confirmed {
+            color: var(--success);
+        }
+
+        .status-other {
+            color: var(--danger);
+        }
+
+        .message {
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .client-services {
+                gap: 8px;
+                margin: 18px auto;
+            }
+
+            .client-services a {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+
+            .container {
+                margin-top: 20px;
+            }
+
+            .welcome-box {
+                padding: 22px 15px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1>Yada Hotel</h1>
+        <button class="logout-btn" type="button" onclick="logout()">
+            Logout
+        </button>
+    </header>
+
+    <!-- Navigation available to regular clients -->
+    <nav class="client-services" aria-label="Hotel services">
+        <a href="/">Home</a>
+        <a href="/rooms">Our Rooms</a>
+        <a href="/booking">Book a Room</a>
+        <a href="/restaurant">Restaurant</a>
+        <a href="/gallery">Gallery</a>
+        <a href="/contact">Contact</a>
+    </nav>
+
+    <main class="container">
+        <section class="welcome-box">
+            <h2 id="welcomeMsg">Welcome!</h2>
+            <p>
+                You are logged in as
+                <strong id="userName">Loading...</strong>
+            </p>
+        </section>
+
+        <div class="grid">
+            <section class="card">
+                <h3>My Bookings</h3>
+                <ul id="bookingList" aria-live="polite">
+                    <li class="booking-item">Loading bookings...</li>
+                </ul>
+            </section>
+
+            <section class="card">
+                <h3>My Restaurant Orders</h3>
+                <ul id="foodOrderList" aria-live="polite">
+                    <li class="booking-item">Loading restaurant orders...</li>
+                </ul>
+            </section>
+
+            <section class="card">
+                <h3>My Profile</h3>
+                <p>
+                    <strong>Email:</strong>
+                    <span id="userEmail">Loading...</span>
+                </p>
+                <p>
+                    <strong>Phone:</strong>
+                    <span id="userPhone">Not set</span>
+                </p>
+                <p id="profileMessage" class="message" aria-live="polite"></p>
+            </section>
+        </div>
+
+        <!-- Displayed only when the server confirms admin access -->
+        <section id="adminSection" class="admin-section">
+            <h2>Admin Controls</h2>
+            <p>You have administrator privileges.</p>
+            <a class="admin-button" href="/admin">Go to Admin Panel</a>
+        </section>
+    </main>
+
+    <script>
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfMeta ? csrfMeta.content : '';
+
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Could not load profile (HTTP ${response.status})`
+                    );
+                }
+
+                const data = await response.json();
+
+                document.getElementById('userName').textContent =
+                    data.username || 'Guest';
+
+                document.getElementById('userEmail').textContent =
+                    data.email || 'Not set';
+
+                document.getElementById('userPhone').textContent =
+                    data.phone || 'Not set';
+
+                document.getElementById('welcomeMsg').textContent =
+                    `Welcome, ${data.username || 'Guest'}!`;
+
+                // The API supplies the user's actual admin status.
+                // Ordinary clients never see this admin shortcut.
+                if (data.is_admin === true) {
+                    document.getElementById('adminSection').style.display =
+                        'block';
+                } else {
+                    document.getElementById('adminSection').style.display =
+                        'none';
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                document.getElementById('profileMessage').textContent =
+                    'Unable to load your profile. Please refresh the page.';
+                document.getElementById('profileMessage').className =
+                    'message error';
+            }
+        }
+
+        async function loadBookings() {
+            const list = document.getElementById('bookingList');
+
+            try {
+                const response = await fetch('/api/my-bookings', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Could not load bookings (HTTP ${response.status})`
+                    );
+                }
+
+                const bookings = await response.json();
+
+                if (!Array.isArray(bookings) || bookings.length === 0) {
+                    list.replaceChildren();
+
+                    const item = document.createElement('li');
+                    item.className = 'booking-item';
+                    item.textContent = 'No bookings found.';
+                    list.appendChild(item);
+                    return;
+                }
+
+                list.replaceChildren();
+
+                bookings.forEach((booking) => {
+                    const item = document.createElement('li');
+                    item.className = 'booking-item';
+
+                    const title = document.createElement('strong');
+                    title.textContent =
+                        `Room ${booking.room_number ?? 'N/A'}`;
+
+                    const details = document.createElement('div');
+                    details.textContent =
+                        `Type: ${booking.room_type ?? 'N/A'}`;
+
+                    const dates = document.createElement('div');
+                    dates.textContent =
+                        `${booking.check_in ?? 'N/A'} to ${booking.check_out ?? 'N/A'}`;
+
+                    const price = document.createElement('div');
+                    price.textContent =
+                        `Total: ${booking.total_price ?? 'N/A'} ETB`;
+
+                    const status = document.createElement('div');
+                    const statusLabel = document.createElement('strong');
+                    statusLabel.textContent = 'Status: ';
+
+                    const statusValue = document.createElement('span');
+                    statusValue.textContent = booking.status ?? 'Unknown';
+                    statusValue.className =
+                        booking.status === 'confirmed'
+                            ? 'status-confirmed'
+                            : 'status-other';
+
+                    status.append(statusLabel, statusValue);
+                    item.append(title, details, dates, price, status);
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                list.replaceChildren();
+
+                const item = document.createElement('li');
+                item.className = 'booking-item error';
+                item.textContent =
+                    'Unable to load bookings. Please refresh the page.';
+                list.appendChild(item);
+            }
+        }
+
+        async function loadFoodOrders() {
+            const list = document.getElementById('foodOrderList');
+            if (!list) return;
+
+            try {
+                const response = await fetch('/api/my-food-orders', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Please log in again to view your orders.');
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Could not load restaurant orders (HTTP ${response.status})`
+                    );
+                }
+
+                const orders = await response.json();
+                list.replaceChildren();
+
+                if (!Array.isArray(orders) || orders.length === 0) {
+                    const empty = document.createElement('li');
+                    empty.className = 'booking-item';
+                    empty.textContent = 'No restaurant orders found yet.';
+                    list.appendChild(empty);
+                    return;
+                }
+
+                orders.forEach((order) => {
+                    const item = document.createElement('li');
+                    item.className = 'booking-item';
+
+                    const heading = document.createElement('strong');
+                    heading.textContent = `Restaurant Order #${order.id}`;
+
+                    const itemsLine = document.createElement('div');
+                    itemsLine.textContent = 'Items: ';
+                    try {
+                        const parsedItems = typeof order.items === 'string'
+                            ? JSON.parse(order.items)
+                            : order.items;
+
+                        if (Array.isArray(parsedItems) && parsedItems.length) {
+                            itemsLine.textContent = 'Items: ' +
+                                parsedItems.map((food) => {
+                                    const name = food.name || 'Menu item';
+                                    const qty = food.qty ?? food.quantity ?? 1;
+                                    return `${name} × ${qty}`;
+                                }).join(', ');
+                        } else {
+                            itemsLine.textContent = 'Items: Details unavailable';
+                        }
+                    } catch {
+                        itemsLine.textContent = 'Items: Details unavailable';
+                    }
+
+                    const total = document.createElement('div');
+                    total.textContent =
+                        `Total: ${Number(order.total || 0).toLocaleString()} ETB`;
+
+                    const room = document.createElement('div');
+                    room.textContent =
+                        `Room service: ${order.room || 'Takeaway'}`;
+
+                    const date = document.createElement('div');
+                    date.textContent = `Date: ${order.date || 'Unavailable'}`;
+
+                    const status = document.createElement('div');
+                    const statusLabel = document.createElement('strong');
+                    statusLabel.textContent = 'Status: ';
+                    const statusValue = document.createElement('span');
+                    statusValue.textContent = order.status || 'Pending';
+                    status.append(statusLabel, statusValue);
+
+                    const receipt = document.createElement('a');
+                    receipt.className = 'order-receipt-link';
+                    receipt.href = `/api/food-orders/${encodeURIComponent(order.id)}/receipt`;
+                    receipt.textContent = 'View / Download Receipt';
+                    receipt.target = '_blank';
+                    receipt.rel = 'noopener noreferrer';
+
+                    item.append(
+                        heading, itemsLine, total, room, date, status, receipt
+                    );
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading restaurant orders:', error);
+                list.replaceChildren();
+
+                const message = document.createElement('li');
+                message.className = 'booking-item error';
+                message.textContent =
+                    error.message ||
+                    'Unable to load restaurant orders. Please refresh the page.';
+                list.appendChild(message);
+            }
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok || response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                console.error('Logout failed:', response.status);
+                alert('Logout failed. Please try again.');
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Could not connect to the server. Please try again.');
+            }
+        }
+
+        // Load the user's information and bookings when the page opens.
+        loadProfile();
+        loadBookings();
+        loadFoodOrders();
+    </script>
+</body>
+</html>

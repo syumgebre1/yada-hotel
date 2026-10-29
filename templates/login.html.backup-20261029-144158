@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Login - Yada Hotel</title>
+    <style>
+        body { background-color: #0f0f0f; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: #1e1e1e; padding: 40px; border-radius: 15px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #333; }
+        .logo-container { margin-bottom: 20px; display: flex; justify-content: center; }
+        .logo-container img { max-width: 80px; height: auto; }
+        h2 { margin-bottom: 25px; font-weight: 600; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; box-sizing: border-box; background: #2a2a2a; color: white; font-size: 16px; }
+        input:focus { outline: none; border-color: #ffd700; }
+        button { background: #ffd700; color: black; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #e6c200; }
+        .forgot { text-align: right; display: block; margin-top: 10px; color: #888; text-decoration: none; font-size: 14px; }
+        .forgot:hover { color: #ffd700; }
+        .register-link { margin-top: 25px; display: block; color: #ccc; font-size: 14px; }
+        .register-link a { color: #ffd700; text-decoration: none; }
+        .register-link a:hover { text-decoration: underline; }
+        .error { color: #ff4c4c; margin-top: 15px; font-size: 14px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Yada Hotel Logo">
+        </div>
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <a href="/forgot-password" class="forgot">Forgot Password?</a>
+            <button type="submit" id="submitBtn">Login</button>
+        </form>
+        <div id="errorMsg" class="error"></div>
+        
+        <div class="register-link">
+            Don't have an account? <a href="/register">Register here</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const errorMsg = document.getElementById('errorMsg');
+            const submitBtn = document.getElementById('submitBtn');
+            errorMsg.style.display = 'none';
+            submitBtn.textContent = "Logging in...";
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // SAVE USER TO LOCAL STORAGE FOR ADMIN.HTML TO SEE
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = '/dashboard'; 
+                } else {
+                    errorMsg.textContent = data.error || "Invalid credentials";
+                    errorMsg.style.display = 'block';
+                    submitBtn.textContent = "Login";
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                errorMsg.textContent = "Connection error. Check server logs.";
+                errorMsg.style.display = 'block';
+                submitBtn.textContent = "Login";
+            }
+        });
+    </script>
+</body>
+</html>

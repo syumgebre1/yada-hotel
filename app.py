@@ -1,11 +1,14 @@
-from flask import Flask, request, jsonify, session, render_template, Response
+from flask import Flask, request, jsonify, session, render_template, Response, url_for
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
-from models import db, User, Room, Booking, Review, RoomImage, ContactMessage, SiteSetting, MenuItem, CartItem, FoodOrder, TableReservation, GalleryImage
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from database import db
+from models import User, Room, Booking, Review, RoomImage, ContactMessage, SiteSetting, MenuItem, CartItem, FoodOrder, TableReservation, GalleryImage
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from functools import wraps
+from dotenv import load_dotenv
 import os
 import io
 import secrets
@@ -17,15 +20,27 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = 'yada-hotel-secret-key-2026'
+
+# ===== SECURITY CONFIG =====
+app.secret_key = os.environ.get('SECRET_KEY', 'default-secret-key-for-dev')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///yada_hotel.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = False
+
+# CHANGED TO FALSE: Set to True ONLY in production (PythonAnywhere HTTPS)
+app.config['SESSION_COOKIE_SECURE'] = False 
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_PATH'] = '/'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+
+# CSRF Config - REAL PROTECTION
+app.config['WTF_CSRF_CHECK_DEFAULT'] = True 
+app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken', 'X-CSRF-Token']
+app.config['WTF_CSRF_TIME_LIMIT'] = None
+csrf = CSRFProtect(app)
 
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -34,13 +49,26 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your_test_email@gmail.com' 
-app.config['MAIL_PASSWORD'] = 'your_app_password'         
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'your_test_email@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'your_app_password')
 app.config['MAIL_DEFAULT_SENDER'] = 'yada.hotel@example.com'
 mail = Mail(app)
 
 db.init_app(app)
-CORS(app, supports_credentials=True, origins=['*'])
+
+# REAL MIGRATE SETUP
+from flask_migrate import Migrate
+migrate = Migrate(app, db)
+
+CORS(app, supports_credentials=True, origins=['https://syumgebre1.pythonanywhere.com', 'http://127.0.0.1:5000', 'http://localhost:5000'], expose_headers=['X-CSRFToken'])
+
+# Expose CSRF token in every API response
+@app.after_request
+def inject_csrf_token(response):
+    if request.path.startswith('/api/'):
+        response.set_cookie('csrf_token', generate_csrf(), samesite='Lax', secure=False)
+        response.headers['X-CSRFToken'] = generate_csrf()
+    return response
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -63,45 +91,44 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if request.method == 'OPTIONS': return '', 200
-        if not current_user.is_authenticated or current_user.username != 'admin':
+        if not current_user.is_authenticated or not current_user.is_admin:
             return jsonify({'error': 'Admin access required'}), 403
         return f(*args, **kwargs)
     return decorated_function
 
 def create_data():
-    rooms_data = [
-        {'number': '101', 'type': 'Standard', 'price': 2000, 'desc': 'Cozy room with city view'},
-        {'number': '102', 'type': 'Standard', 'price': 2000, 'desc': 'Comfortable room with garden view'},
-        {'number': '103', 'type': 'Deluxe', 'price': 3500, 'desc': 'Spacious room with balcony'},
-        {'number': '104', 'type': 'Deluxe', 'price': 3500, 'desc': 'Elegant room with mountain view'},
-        {'number': '105', 'type': 'Suite', 'price': 5000, 'desc': 'Luxury suite with living room'},
-        {'number': '106', 'type': 'Standard', 'price': 2200, 'desc': 'Modern room with workspace'},
-        {'number': '107', 'type': 'Deluxe', 'price': 3800, 'desc': 'Premium room with ocean view'},
-        {'number': '108', 'type': 'Suite', 'price': 5500, 'desc': 'Executive suite with jacuzzi'},
-        {'number': '109', 'type': 'Standard', 'price': 2500, 'desc': 'Family room with extra bed'},
-        {'number': '110', 'type': 'Standard', 'price': 2500, 'desc': 'Twin beds with city view'},
-        {'number': '111', 'type': 'Deluxe', 'price': 4000, 'desc': 'Corner room with panoramic view'},
-        {'number': '112', 'type': 'Deluxe', 'price': 4200, 'desc': 'Family deluxe with kitchenette'},
-        {'number': '113', 'type': 'Suite', 'price': 6000, 'desc': 'Presidential suite with private balcony'}
-    ]
-    for room_data in rooms_data:
-        room = Room.query.filter_by(room_number=room_data['number']).first()
-        if not room:
+    if Room.query.first() is None:
+        rooms_data = [
+            {'number': '101', 'type': 'Standard', 'price': 2000, 'desc': 'Cozy room with city view'},
+            {'number': '102', 'type': 'Standard', 'price': 2000, 'desc': 'Comfortable room with garden view'},
+            {'number': '103', 'type': 'Deluxe', 'price': 3500, 'desc': 'Spacious room with balcony'},
+            {'number': '104', 'type': 'Deluxe', 'price': 3500, 'desc': 'Elegant room with mountain view'},
+            {'number': '105', 'type': 'Suite', 'price': 5000, 'desc': 'Luxury suite with living room'},
+            {'number': '106', 'type': 'Standard', 'price': 2200, 'desc': 'Modern room with workspace'},
+            {'number': '107', 'type': 'Deluxe', 'price': 3800, 'desc': 'Premium room with ocean view'},
+            {'number': '108', 'type': 'Suite', 'price': 5500, 'desc': 'Executive suite with jacuzzi'},
+            {'number': '109', 'type': 'Standard', 'price': 2500, 'desc': 'Family room with extra bed'},
+            {'number': '110', 'type': 'Standard', 'price': 2500, 'desc': 'Twin beds with city view'},
+            {'number': '111', 'type': 'Deluxe', 'price': 4000, 'desc': 'Corner room with panoramic view'},
+            {'number': '112', 'type': 'Deluxe', 'price': 4200, 'desc': 'Family deluxe with kitchenette'},
+            {'number': '113', 'type': 'Suite', 'price': 6000, 'desc': 'Presidential suite with private balcony'}
+        ]
+        for room_data in rooms_data:
             new_room = Room(room_number=room_data['number'], room_type=room_data['type'], price=room_data['price'], description=room_data['desc'], available=True)
             db.session.add(new_room)
-    
-    foods_data = [
-        {'name': 'Doro Wat', 'desc': 'Traditional spicy chicken stew served with injera', 'price': 450, 'cat': 'Lunch', 'special': True},
-        {'name': 'Kitfo', 'desc': 'Minced raw beef seasoned with mitmita and niter kibbeh', 'price': 500, 'cat': 'Lunch', 'special': False},
-        {'name': 'Chechebsa', 'desc': 'Shredded flatbread mixed with berbere and clarified butter', 'price': 250, 'cat': 'Breakfast', 'special': False},
-        {'name': 'Tibs', 'desc': 'Sautéed beef or lamb with onions and peppers', 'price': 400, 'cat': 'Dinner', 'special': False},
-        {'name': 'Macchiato', 'desc': 'Espresso with a dollop of steamed milk foam', 'price': 80, 'cat': 'Drinks', 'special': False}
-    ]
-    for f in foods_data:
-        if not MenuItem.query.filter_by(name=f['name']).first():
+
+    if MenuItem.query.first() is None:
+        foods_data = [
+            {'name': 'Doro Wat', 'desc': 'Traditional spicy chicken stew served with injera', 'price': 450, 'cat': 'Lunch', 'special': True},
+            {'name': 'Kitfo', 'desc': 'Minced raw beef seasoned with mitmita and niter kibbeh', 'price': 500, 'cat': 'Lunch', 'special': False},
+            {'name': 'Chechebsa', 'desc': 'Shredded flatbread mixed with berbere and clarified butter', 'price': 250, 'cat': 'Breakfast', 'special': False},
+            {'name': 'Tibs', 'desc': 'Sautéed beef or lamb with onions and peppers', 'price': 400, 'cat': 'Dinner', 'special': False},
+            {'name': 'Macchiato', 'desc': 'Espresso with a dollop of steamed milk foam', 'price': 80, 'cat': 'Drinks', 'special': False}
+        ]
+        for f in foods_data:
             db.session.add(MenuItem(name=f['name'], description=f['desc'], price=f['price'], category=f['cat'], is_special=f['special']))
-    
-    if not SiteSetting.query.first():
+
+    if SiteSetting.query.first() is None:
         db.session.add(SiteSetting())
         
     db.session.commit()
@@ -126,6 +153,7 @@ def register_page(): return render_template('register.html')
 @app.route('/dashboard')
 def dashboard_page(): return render_template('dashboard.html')
 @app.route('/admin')
+@login_required
 def admin_page(): return render_template('admin.html')
 @app.route('/forgot-password')
 def forgot_password_page(): return render_template('forgot_password.html')
@@ -144,13 +172,18 @@ def not_found(e): return render_template('404.html'), 404
 def server_error(e): return render_template('500.html'), 500
 
 # ===== AUTH APIs =====
+@csrf.exempt
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS': return '', 200
     data = request.get_json()
+    if not data: return jsonify({'error': 'No data provided'}), 400
+    if len(data.get('password', '')) < 6: return jsonify({'error': 'Password must be at least 6 characters long'}), 400
+    if '@' not in data.get('email', ''): return jsonify({'error': 'Invalid email address'}), 400
+        
     if User.query.filter_by(username=data.get('username')).first(): return jsonify({'error': 'Username already exists'}), 400
     hashed_password = generate_password_hash(data['password'])
-    user = User(username=data['username'], email=data['email'], password=hashed_password)
+    user = User(username=data['username'], email=data['email'], password=hashed_password, is_admin=False)
     db.session.add(user)
     db.session.commit()
     return jsonify({'message': 'Registration successful!'}), 201
@@ -164,7 +197,7 @@ def login():
     login_user(user, remember=True)
     session['user_id'] = user.id
     session.permanent = True
-    return jsonify({'message': 'Login successful!', 'user': {'id': user.id, 'username': user.username, 'email': user.email}}), 200
+    return jsonify({'message': 'Login successful!', 'user': {'id': user.id, 'username': user.username, 'email': user.email, 'is_admin': user.is_admin}}), 200
 
 @app.route('/api/logout', methods=['POST'])
 @api_login_required
@@ -177,7 +210,7 @@ def logout():
 @api_login_required
 def user_profile():
     if request.method == 'GET':
-        return jsonify({'username': current_user.username, 'email': current_user.email, 'phone': current_user.phone}), 200
+        return jsonify({'username': current_user.username, 'email': current_user.email, 'phone': current_user.phone, 'is_admin': current_user.is_admin}), 200
     if request.method == 'PUT':
         data = request.get_json()
         if data.get('email'): current_user.email = data['email']
@@ -262,7 +295,6 @@ def create_booking():
     booking = Booking(user_id=current_user.id, room_id=room.id, guest_name=data['guest_name'], guest_phone=data.get('guest_phone', ''), check_in=check_in, check_out=check_out, total_price=total, status='confirmed')
     db.session.add(booking)
     db.session.commit()
-    print(f"\n[SIMULATED EMAIL] To: {current_user.email}\nSubject: Booking Confirmed - Room {room.room_number}\nBody: Room {room.room_number} booked from {data['check_in']} to {data['check_out']}. Total: {total} ETB\n")
     return jsonify({'message': 'Booking confirmed!', 'booking_id': booking.id, 'total_price': total, 'nights': nights}), 201
 
 @app.route('/api/my-bookings', methods=['GET', 'OPTIONS'])
@@ -327,9 +359,6 @@ def checkout():
     CartItem.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
     
-    print(f"\n[SIMULATED FOOD RECEIPT] To: {current_user.email}")
-    print(f"Order ID: #{order.id} | Total: {total} ETB | Room: {room_number if room_number else 'Takeaway'}\n")
-    
     return jsonify({'message': 'Order placed successfully!', 'total': total}), 201
 
 @app.route('/api/my-food-orders', methods=['GET'])
@@ -356,7 +385,7 @@ def book_table():
 @api_login_required
 def food_receipt(order_id):
     order = db.session.get(FoodOrder, order_id)
-    if not order or (order.user_id != current_user.id and current_user.username != 'admin'):
+    if not order or (order.user_id != current_user.id and not current_user.is_admin):
         return jsonify({'error': 'Unauthorized'}), 403
     
     buffer = io.BytesIO()
@@ -626,6 +655,65 @@ def admin_add_menu():
     db.session.commit()
     return jsonify({'message': 'Menu item added!'}), 201
 
+@app.route('/api/admin/menu/<int:item_id>/edit', methods=['POST'])
+@admin_required
+def admin_edit_menu(item_id):
+    item = db.session.get(MenuItem, item_id)
+    if not item:
+        return jsonify({'error': 'Menu item not found'}), 404
+
+    name = request.form.get('name', '').strip()
+    description = request.form.get('description', item.description or '').strip()
+    price_text = request.form.get('price', '').strip()
+    category = request.form.get('category', item.category or '').strip()
+
+    if not name:
+        return jsonify({'error': 'Food name is required'}), 400
+    try:
+        price = float(price_text)
+        if price < 0:
+            raise ValueError
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Enter a valid non-negative price'}), 400
+    if not category:
+        return jsonify({'error': 'Category is required'}), 400
+
+    is_special = request.form.get('is_special', 'false').lower() == 'true'
+
+    # Only replace the existing photo when a new file was actually selected.
+    upload = request.files.get('image')
+    if upload and upload.filename:
+        safe_name = secure_filename(upload.filename)
+        if not safe_name:
+            return jsonify({'error': 'Invalid image filename'}), 400
+        upload_dir = app.config['UPLOAD_FOLDER']
+        os.makedirs(upload_dir, exist_ok=True)
+        filename = f"menu_{item.id}_{safe_name}"
+        upload.save(os.path.join(upload_dir, filename))
+        item.image_filename = filename
+
+    item.name = name
+    item.description = description
+    item.price = price
+    item.category = category
+    item.is_special = is_special
+
+    if is_special:
+        MenuItem.query.filter(MenuItem.id != item.id).update(
+            {MenuItem.is_special: False},
+            synchronize_session=False
+        )
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Failed to update menu item %s", item_id)
+        return jsonify({'error': 'Could not save menu item changes'}), 500
+
+    return jsonify({'message': 'Menu item updated successfully'}), 200
+
+
 @app.route('/api/admin/menu/<int:item_id>', methods=['DELETE'])
 @admin_required
 def admin_delete_menu(item_id):
@@ -679,6 +767,7 @@ def kitchen_ticket(order_id):
     return Response(buffer.getvalue(), mimetype="application/pdf", headers={"Content-Disposition": f"attachment; filename=Ticket_{order.id}.pdf"})
 
 @app.route('/api/contact', methods=['POST'])
+@csrf.exempt
 def submit_contact():
     data = request.get_json()
     new_msg = ContactMessage(name=data['name'], email=data['email'], message=data['message'])
@@ -686,6 +775,11 @@ def submit_contact():
     db.session.commit()
     return jsonify({'message': 'Message sent successfully!'}), 201
 
+@app.errorhandler(400)
+def handle_bad_request(e):
+    return jsonify({"error": "CSRF token missing or invalid."}), 400
+
 if __name__ == '__main__':
     init_db()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    is_debug = os.environ.get('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']
+    app.run(host='127.0.0.1', port=5002, debug=True)

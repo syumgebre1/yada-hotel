@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="100" viewBox="0 0 440 100" role="img" aria-labelledby="title">
+<title id="title">YADA HOTEL</title>
+<rect width="100" height="100" rx="14" fill="#17213e"/>
+<path d="M25 78V35L50 19L75 35V78M18 78H82M38 78V61H62V78M35 43H43M57 43H65M35 53H43M57 53H65" fill="none" stroke="#f5bf00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="118" y="57" font-family="Georgia,serif" font-size="43" font-weight="bold" fill="#f5bf00">YADA</text>
+<text x="118" y="84" font-family="Arial,sans-serif" font-size="23" letter-spacing="5" fill="#ffffff">HOTEL</text>
+</svg>

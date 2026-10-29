@@ -1,21 +1,18 @@
+
+from database import db
 from flask_login import UserMixin
 from datetime import datetime
-from database import db
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(20), nullable=True) 
-    password = db.Column(db.String(200), nullable=False)
-    reset_token = db.Column(db.String(100), nullable=True)
-    reset_token_expiration = db.Column(db.DateTime, nullable=True)
-    # Relationships
-    bookings = db.relationship('Booking', backref='user', lazy=True)
-    reviews = db.relationship('Review', backref='author', lazy=True)
-    cart_items = db.relationship('CartItem', backref='user', lazy=True)
-    food_orders = db.relationship('FoodOrder', backref='user', lazy=True)
+    phone = db.Column(db.String(20))
+    password = db.Column(db.String(128), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False) 
+    reset_token = db.Column(db.String(128))
+    reset_token_expiration = db.Column(db.DateTime)
 
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -25,12 +22,9 @@ class Room(db.Model):
     price = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
     available = db.Column(db.Boolean, default=True)
-    image_filename = db.Column(db.String(200), nullable=True, default='default_room.jpg')
+    image_filename = db.Column(db.String(200))
     is_featured = db.Column(db.Boolean, default=False)
-    amenities = db.Column(db.String(200), nullable=True, default="WiFi, TV, AC") 
-    # Relationships
-    bookings = db.relationship('Booking', backref='room', lazy=True)
-    reviews = db.relationship('Review', backref='room', lazy=True)
+    amenities = db.Column(db.Text)
     images = db.relationship('RoomImage', backref='room', lazy=True, cascade="all, delete-orphan")
 
 class RoomImage(db.Model):
@@ -50,6 +44,7 @@ class Booking(db.Model):
     check_out = db.Column(db.DateTime, nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), default='confirmed')
+    room = db.relationship('Room', backref='bookings')
 
 class Review(db.Model):
     __tablename__ = 'reviews'
@@ -57,8 +52,10 @@ class Review(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
-    comment = db.Column(db.Text, nullable=True)
+    comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    author = db.relationship('User', backref='reviews')
+    room = db.relationship('Room', backref='reviews')
 
 class ContactMessage(db.Model):
     __tablename__ = 'contact_messages'
@@ -71,10 +68,10 @@ class ContactMessage(db.Model):
 class SiteSetting(db.Model):
     __tablename__ = 'site_settings'
     id = db.Column(db.Integer, primary_key=True)
-    whatsapp = db.Column(db.String(20), default='251911122112')
-    telegram = db.Column(db.String(50), default='yadahotel')
-    gmail = db.Column(db.String(120), default='yadahotel@gmail.com')
-    address = db.Column(db.String(200), default='Bole, Addis Ababa, Ethiopia')
+    whatsapp = db.Column(db.String(50), default='')
+    telegram = db.Column(db.String(50), default='')
+    gmail = db.Column(db.String(120), default='')
+    address = db.Column(db.String(200), default='')
 
 class MenuItem(db.Model):
     __tablename__ = 'menu_items'
@@ -82,8 +79,8 @@ class MenuItem(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     price = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    image_filename = db.Column(db.String(200), nullable=True)
+    category = db.Column(db.String(50))
+    image_filename = db.Column(db.String(200))
     is_special = db.Column(db.Boolean, default=False)
 
 class CartItem(db.Model):
@@ -92,17 +89,18 @@ class CartItem(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
     quantity = db.Column(db.Integer, default=1)
-    menu_item = db.relationship('MenuItem', backref='cart_entries')
+    menu_item = db.relationship('MenuItem', backref='cart_items')
 
 class FoodOrder(db.Model):
     __tablename__ = 'food_orders'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     total_price = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(20), default='pending') 
-    room_number = db.Column(db.String(10), nullable=True)
+    status = db.Column(db.String(20), default='pending')
+    room_number = db.Column(db.String(10), default='')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     items = db.Column(db.Text, nullable=False)
+    user = db.relationship('User', backref='food_orders')
 
 class TableReservation(db.Model):
     __tablename__ = 'table_reservations'
@@ -118,6 +116,6 @@ class TableReservation(db.Model):
 class GalleryImage(db.Model):
     __tablename__ = 'gallery_images'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(100))
     image_filename = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

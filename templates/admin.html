@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>YADA HOTEL - Admin Panel</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -48,7 +49,7 @@
 <body>
     <nav class="navbar">
         <a href="/" class="navbar-brand">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;">
         </a>
         <div class="navbar-links">
             <a href="/">Home</a>
@@ -223,6 +224,43 @@
         </div>
     </div>
 
+    <!-- EDIT MENU ITEM MODAL -->
+    <div class="modal" id="editMenuModal">
+        <div class="modal-content">
+            <h3><i class="fa-solid fa-pen-to-square"></i> Edit Food Item</h3>
+            <form id="editMenuForm" enctype="multipart/form-data">
+                <input type="hidden" id="editMenuId">
+                <label for="editMenuName">Food Name</label>
+                <input type="text" id="editMenuName" placeholder="Food Name" required>
+                <label for="editMenuDesc">Description</label>
+                <textarea id="editMenuDesc" placeholder="Description" rows="2"></textarea>
+                <label for="editMenuPrice">Price (ETB)</label>
+                <input type="number" id="editMenuPrice" min="0" step="0.01" placeholder="Price (ETB)" required>
+                <label for="editMenuCategory">Category</label>
+                <select id="editMenuCategory" required>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Dessert">Dessert</option>
+                </select>
+                <label style="display:block; margin:10px 0 5px; font-weight:bold; color:var(--text-color);">Current Photo</label>
+                <img id="editMenuCurrentImage" alt="Current food photo"
+                     style="display:none; width:120px; height:90px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <p id="editMenuNoImage" style="color:var(--text-muted);">No photo currently saved.</p>
+                <label for="editMenuImage">Replace Photo (optional)</label>
+                <input type="file" id="editMenuImage" accept="image/*">
+                <div style="display:flex; align-items:center; gap:10px; margin:12px 0;">
+                    <input type="checkbox" id="editMenuSpecial" style="width:auto; margin:0;">
+                    <label for="editMenuSpecial" style="margin:0; color:var(--text-color);">Mark as Today's Special</label>
+                </div>
+                <button type="submit" class="btn btn-gold" style="width:100%; margin-top:10px;">Save Changes</button>
+                <button type="button" class="btn" style="width:100%; margin-top:8px;"
+                        onclick="closeModal('editMenuModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+
     <!-- ADD MENU ITEM MODAL -->
     <div class="modal" id="addMenuModal">
         <div class="modal-content">
@@ -279,13 +317,22 @@
             Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", style: { background: isSuccess ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
         }
 
-        function checkAuth() {
-            const user = localStorage.getItem('user');
-            if (!user) { window.location.href = '/login'; return; }
+        // FIXED CHECK AUTH
+        async function checkAuth() {
             try {
-                const userData = JSON.parse(user);
-                if (userData.username !== 'admin') { showToast('Admin access required!', false); setTimeout(() => window.location.href = '/dashboard', 1500); }
-            } catch(e) { window.location.href = '/login'; }
+                const res = await fetch(`${API_URL}/profile`, { credentials: 'include' });
+                if (res.ok) {
+                    const userData = await res.json();
+                    // ONLY KICK OUT IF IS_ADMIN IS EXPLICITLY FALSE
+                    if (userData.is_admin === false || userData.is_admin === undefined) {
+                        window.location.href = '/dashboard'; 
+                    }
+                } else {
+                    window.location.href = '/login';
+                }
+            } catch(e) { 
+                window.location.href = '/login'; 
+            }
         }
 
         async function loadStats() {
@@ -418,6 +465,7 @@
                         <td>${i.price.toLocaleString()} ETB</td>
                         <td>${i.is_special ? '<i class="fa-solid fa-star" style="color: #e6b800;"></i>' : '-'}</td>
                         <td>
+                            <button class="btn-sm" title="Edit food item" style="margin-right:5px;" onclick="editMenuItem(${i.id})"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button class="btn-sm btn-delete" onclick="deleteMenuItem(${i.id})"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
@@ -606,7 +654,18 @@
             if (imageFile) formData.append('image', imageFile);
 
             try {
-                const res = await fetch(`${API_URL}/admin/rooms/${roomId}/edit`, { method: 'POST', credentials: 'include', body: formData });
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+                if (!csrfToken) {
+                    showToast('Security token missing. Refresh the page and sign in again.', false);
+                    return;
+                }
+                const res = await fetch(`${API_URL}/admin/rooms/${roomId}/edit`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData
+                });
                 if (res.ok) {
                     showToast('✅ Room updated successfully!', true);
                     closeModal('editRoomModal');
@@ -641,6 +700,49 @@
             } catch(e) { showToast('❌ Connection error', false); }
         });
 
+        document.getElementById('editMenuForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('editMenuId').value;
+            const formData = new FormData();
+            formData.append('name', document.getElementById('editMenuName').value.trim());
+            formData.append('description', document.getElementById('editMenuDesc').value);
+            formData.append('price', document.getElementById('editMenuPrice').value);
+            formData.append('category', document.getElementById('editMenuCategory').value);
+            formData.append('is_special', String(document.getElementById('editMenuSpecial').checked));
+
+            const imageFile = document.getElementById('editMenuImage').files[0];
+            if (imageFile) formData.append('image', imageFile);
+
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+            if (!csrfToken) {
+                showToast('Security token missing. Refresh the page and sign in again.', false);
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/admin/menu/${id}/edit`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    showToast(data.error || 'Failed to update food item.', false);
+                    return;
+                }
+
+                showToast('Food item updated successfully!', true);
+                closeModal('editMenuModal');
+                await loadMenu();
+            } catch (error) {
+                showToast('Connection error while updating food item.', false);
+            }
+        });
+
         document.getElementById('addGalleryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData();
@@ -662,6 +764,43 @@
             if (!confirm('Delete this room?')) return;
             await fetch(`${API_URL}/admin/rooms/${id}`, { method: 'DELETE', credentials: 'include' });
             loadRooms(); loadStats();
+        }
+
+        async function editMenuItem(id) {
+            try {
+                const res = await fetch(`${API_URL}/menu`, { credentials: 'include' });
+                if (!res.ok) throw new Error('Could not load menu items');
+                const items = await res.json();
+                const item = items.find(entry => Number(entry.id) === Number(id));
+                if (!item) {
+                    showToast('Food item not found. Refresh the menu and try again.', false);
+                    return;
+                }
+
+                document.getElementById('editMenuId').value = item.id;
+                document.getElementById('editMenuName').value = item.name || '';
+                document.getElementById('editMenuDesc').value = item.description || '';
+                document.getElementById('editMenuPrice').value = item.price ?? '';
+                document.getElementById('editMenuCategory').value = item.category || 'Lunch';
+                document.getElementById('editMenuSpecial').checked = Boolean(item.is_special);
+                document.getElementById('editMenuImage').value = '';
+
+                const preview = document.getElementById('editMenuCurrentImage');
+                const noImage = document.getElementById('editMenuNoImage');
+                if (item.image_filename) {
+                    preview.src = `/static/uploads/${encodeURIComponent(item.image_filename)}`;
+                    preview.style.display = 'block';
+                    noImage.style.display = 'none';
+                } else {
+                    preview.removeAttribute('src');
+                    preview.style.display = 'none';
+                    noImage.style.display = 'block';
+                }
+
+                document.getElementById('editMenuModal').classList.add('active');
+            } catch (error) {
+                showToast('Could not load food item details.', false);
+            }
         }
 
         async function deleteMenuItem(id) {

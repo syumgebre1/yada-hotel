@@ -31,12 +31,13 @@
         .cart-btn { position: fixed; bottom: 100px; right: 30px; background: #1a3a5c; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1500; }
         .cart-badge { position: absolute; top: 0; right: 0; background: #e74c3c; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; }
     </style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <nav class="navbar">
         <a href="/" class="navbar-brand">
             <!-- ABSOLUTE PATH USED HERE -->
-            <img src="/static/logo.jpg" alt="YADA HOTEL" style="height: 50px; width: 50px; object-fit: contain; border-radius: 8px;">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="YADA HOTEL" style="height: 50px; width: 50px; object-fit: contain; border-radius: 8px;">
         </a>
         <div class="navbar-links">
             <a href="/">Home</a>
@@ -191,7 +192,7 @@
             if(!user) { showError('Please login to order food.'); setTimeout(()=>window.location.href='/login', 1500); return; }
             
             const res = await fetch('/api/cart/add', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }, credentials: 'include',
                 body: JSON.stringify({ menu_item_id: itemId })
             });
             if (res.ok) { showToast('Added to cart!'); loadCart(); }
@@ -236,14 +237,14 @@
         }
 
         async function removeFromCart(cartId) {
-            await fetch(`/api/cart/remove/${cartId}`, { method: 'DELETE', credentials: 'include' });
+            await fetch(`/api/cart/remove/${cartId}`, { method: 'DELETE', headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }, credentials: 'include' });
             loadCart();
         }
 
         async function checkout() {
             const roomNum = document.getElementById('roomServiceInput').value;
             const res = await fetch('/api/cart/checkout', { 
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }, credentials: 'include',
                 body: JSON.stringify({ room_number: roomNum })
             });
             const data = await res.json();
@@ -260,7 +261,7 @@
         document.getElementById('tableForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const res = await fetch('/api/table-reservations', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }, credentials: 'include',
                 body: JSON.stringify({
                     guest_name: document.getElementById('tName').value,
                     phone: document.getElementById('tPhone').value,

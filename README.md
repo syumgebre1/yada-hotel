@@ -31,7 +31,7 @@ Built with **Python (Flask)** and **Vanilla JavaScript**, this project focuses o
 
 ## 🛠️ Tech Stack
 
-*   **Backend:** Python, Flask, Flask-Login, Flask-Mail
+*   **Backend:** Python, Flask, Flask-Login, Flask-Mail, Flask-WTF (CSRF Protection)
 *   **Database:** SQLite (with SQLAlchemy ORM)
 *   **Frontend:** HTML5, CSS3, Vanilla JavaScript (ES6+)
 *   **Libraries (Frontend):** Swiper.js (carousels), Chart.js (analytics), FullCalendar (scheduling), Toastify.js (notifications), FontAwesome (icons)
@@ -46,12 +46,15 @@ Built with **Python (Flask)** and **Vanilla JavaScript**, this project focuses o
 yada-hotel/
 ├── app.py                  # Main Flask application & API routes
 ├── models.py               # SQLAlchemy database models
+├── database.py             # Database instance (prevents circular imports)
 ├── create_admin.py         # Script to generate the initial admin user
+├── test_app.py             # Automated tests (pytest)
 ├── requirements.txt        # Python dependencies
+├── .env.example            # Environment variables template
 ├── instance/               # SQLite database (created automatically)
 ├── static/                 # CSS, JS, PWA icons, and uploaded images
 │   ├── uploads/            # Room, food, and gallery images
-│   ├── logo.png            # Hotel branding
+│   ├── logo.jpg            # Hotel branding
 │   ├── style.css           # Global styles & Dark Mode variables
 │   ├── manifest.json       # PWA manifest
 │   └── service-worker.js   # PWA offline caching
