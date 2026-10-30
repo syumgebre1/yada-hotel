@@ -749,8 +749,23 @@
             formData.append('title', document.getElementById('galleryTitle').value);
             formData.append('image', document.getElementById('galleryImage').files[0]);
 
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+            if (!csrfToken) {
+                showToast('❌ Security token missing. Please refresh the page.', false);
+                return;
+            }
+
             try {
-                const res = await fetch(`${API_URL}/admin/gallery`, { method: 'POST', credentials: 'include', body: formData });
+                const res = await fetch(`${API_URL}/admin/gallery`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData
+                });
                 if (res.ok) {
                     showToast('✅ Photo added!', true);
                     closeModal('addGalleryModal');
