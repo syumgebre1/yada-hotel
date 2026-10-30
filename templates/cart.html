@@ -311,8 +311,9 @@
         }
         window.addEventListener("DOMContentLoaded", () => {
             const icon = document.querySelector("#themeBtn i");
-            if(icon </body></body> document.body.classList.contains("dark-mode")) icon.className = "fa-solid fa-sun";
+            if(icon && document.body.classList.contains("dark-mode")) icon.className = "fa-solid fa-sun";
         });
     </script>
+    {% include '_syum_footer.html' %}
 </body>
 </html>
