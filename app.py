@@ -1,3 +1,4 @@
+from PIL import Image
 
 from pathlib import Path
 from flask import Flask, request, jsonify, session, render_template, Response
@@ -161,6 +162,21 @@ def save_uploaded_file(file, prefix="upload"):
     file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
     return filename
 
+
+
+def validate_image(file):
+    # Check allowed extensions
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return False
+    # Check actual file contents using PIL
+    try:
+        img = Image.open(file)
+        img.verify()
+        file.seek(0) # Reset file pointer after verification
+        return True
+    except Exception:
+        return False
 
 def create_data():
     if Room.query.first() is None:

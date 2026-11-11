@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Dashboard - Yada Hotel</title>
+    <style>
+        body { background-color: #0f0f0f; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; padding: 15px 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .header h1 { margin: 0; color: #ffd700; }
+        .logout-btn { background: #ff4c4c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .logout-btn:hover { background: #e60000; }
+        
+        .container { max-width: 900px; margin: 30px auto; }
+        .welcome-box { background: #1e1e1e; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .welcome-box h2 { color: #ffd700; margin-top: 0; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .card h3 { border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 0; color: #ccc; }
+        
+        .admin-section { display: none; margin-top: 20px; background: #2a2a2a; border: 1px solid #ffd700; padding: 20px; border-radius: 10px; }
+        .admin-section h2 { color: #ffd700; margin-top: 0; }
+        
+        ul { list-style-type: none; padding: 0; }
+        li { background: #2a2a2a; margin-bottom: 10px; padding: 15px; border-radius: 8px; border-left: 4px solid #ffd700; }
+        .error { color: #ff4c4c; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Yada Hotel</h1>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <div class="welcome-box">
+            <h2 id="welcomeMsg">Welcome!</h2>
+            <p>You are logged in as <strong id="userName"></strong></p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>My Bookings</h3>
+                <ul id="bookingList">
+                    <li>Loading bookings...</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>My Profile</h3>
+                <p><strong>Email:</strong> <span id="userEmail"></span></p>
+                <p><strong>Phone:</strong> <span id="userPhone">Not set</span></p>
+            </div>
+        </div>
+
+        <!-- ADMIN DASHBOARD SECTION -->
+        <div id="adminSection" class="admin-section">
+            <h2>👑 Admin Controls</h2>
+            <p>You have administrator privileges.</p>
+            <button onclick="window.location.href='/admin'" style="background:#ffd700; color:black; padding:10px 20px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Go to Admin Panel</button>
+        </div>
+    </div>
+
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // 1. Fetch Profile Data
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('userName').textContent = data.username;
+                    document.getElementById('userEmail').textContent = data.email;
+                    if (data.phone) document.getElementById('userPhone').textContent = data.phone;
+                    document.getElementById('welcomeMsg').textContent = `Welcome, ${data.username}!`;
+                    
+                    // Check if admin (we need to fetch this from a custom endpoint or infer it)
+                    // For now, let's fetch the admin stats endpoint. If it works, they are admin.
+                    checkAdminStatus();
+                } else if (response.status === 401) {
+                    window.location.href = '/login'; // Not logged in
+                }
+            } catch (error) {
+                console.error("Error loading profile:", error);
+            }
+        }
+
+        // 2. Fetch My Bookings
+        async function loadBookings() {
+            try {
+                const response = await fetch('/api/my-bookings');
+                if (response.ok) {
+                    const bookings = await response.json();
+                    const list = document.getElementById('bookingList');
+                    
+                    if (bookings.length === 0) {
+                        list.innerHTML = '<li>No bookings found.</li>';
+                        return;
+                    }
+                    
+                    list.innerHTML = bookings.map(b => `
+                        <li>
+                            <strong>Room ${b.room_number}</strong> (${b.room_type})<br>
+                            ${b.check_in} to ${b.check_out} <br>
+                            Total: ${b.total_price} ETB <br>
+                            Status: <span style="color: ${b.status === 'confirmed' ? '#4caf50' : '#ff4c4c'}">${b.status}</span>
+                        </li>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error("Error loading bookings:", error);
+            }
+        }
+
+        // 3. Check Admin Status
+        async function checkAdminStatus() {
+            try {
+                // We check the admin stats API. If it returns 200, the user is an admin.
+                const response = await fetch('/api/admin/stats');
+                if (response.ok) {
+                    document.getElementById('adminSection').style.display = 'block';
+                }
+            } catch (error) {
+                // Not an admin, ignore
+            }
+        }
+
+        // 4. Logout Function
+        async function logout() {
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                window.location.href = '/login';
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        }
+
+        // Initialize on page load
+        loadProfile();
+        loadBookings();
+    </script>
+</body>
+</html>

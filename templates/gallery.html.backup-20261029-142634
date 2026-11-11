@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YADA HOTEL - Gallery</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gallery-container { column-count: 3; column-gap: 20px; padding: 20px 0; }
+        @media (max-width: 900px) { .gallery-container { column-count: 2; } }
+        @media (max-width: 600px) { .gallery-container { column-count: 1; } }
+        
+        .gallery-card { display: inline-block; margin-bottom: 20px; width: 100%; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s; position: relative; }
+        .gallery-card:hover { transform: scale(1.02); }
+        .gallery-card img { width: 100%; display: block; }
+        .gallery-card .caption { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; padding: 20px; font-family: 'Poppins', sans-serif; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <!-- ABSOLUTE PATH USED HERE -->
+            <img src="/static/logo.jpg" alt="YADA HOTEL" style="height: 50px; width: 50px; object-fit: contain; border-radius: 8px;">
+        </a>
+        <div class="navbar-links">
+            <a href="/">Home</a>
+            <a href="/rooms">Rooms</a>
+            <a href="/restaurant">Restaurant</a>
+            <a href="/gallery">Gallery</a>
+            <a href="/login" id="authLink">Login</a>
+            <button class="nav-theme-toggle" id="themeBtn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero" style="padding: 40px 20px; text-align: center;">
+            <h1 style="font-family: 'Playfair Display', serif; font-size: 42px;"><i class="fa-solid fa-camera-retro"></i> Our Gallery</h1>
+            <p>Explore the beauty of YADA Hotel.</p>
+        </div>
+        <div class="gallery-container" id="galleryGrid"></div>
+    </div>
+
+    <script>
+        if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            const icon = document.querySelector("#themeBtn i");
+            if(icon) icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        }
+
+        async function loadGallery() {
+            const res = await fetch('/api/gallery');
+            const images = await res.json();
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = '';
+            images.forEach(img => {
+                grid.innerHTML += `
+                    <div class="gallery-card">
+                        <img src="/static/uploads/${img.image_filename}" alt="${img.title}">
+                        <div class="caption">${img.title}</div>
+                    </div>`;
+            });
+        }
+        loadGallery();
+    </script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YADA HOTEL - Rooms</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <style>
+        .swiper { width: 100%; height: 200px; border-radius: 12px; margin-bottom: 15px; }
+        .swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
+        .filter-bar { display: flex; gap: 15px; background: var(--card-bg); padding: 15px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; flex-wrap: wrap; align-items: center; }
+        .filter-bar input, .filter-bar select { padding: 10px 15px; border: 1px solid var(--input-border); border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 14px; flex: 1; min-width: 150px; outline: none; background: var(--input-bg); color: var(--input-text); }
+        .filter-bar input:focus, .filter-bar select:focus { border-color: #e6b800; }
+        .filter-bar button { padding: 10px 25px; border-radius: 8px; border: none; background: #1a3a5c; color: white; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .filter-bar button:hover { background: #2a5a8a; }
+        .review-list { margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px; text-align: left; }
+        .review-item { margin-bottom: 10px; font-size: 13px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; }
+        body.dark-mode .review-item { background: rgba(255,255,255,0.05); }
+        .amenities { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
+        .amenity-tag { background: #eef2f7; color: #1a3a5c; padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: 600; }
+        body.dark-mode .amenity-tag { background: #333; color: #e6b800; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <!-- ABSOLUTE PATH USED HERE -->
+            <img src="/static/logo.svg" alt="YADA HOTEL" style="height: 50px; width: 50px; object-fit: contain; border-radius: 8px;">
+        </a>
+        <div class="navbar-links">
+            <a href="/">Home</a>
+            <a href="/rooms">Rooms</a>
+            <a href="/restaurant">Restaurant</a>
+            <a href="/gallery">Gallery</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/contact">Contact Us</a>
+            <a href="/admin" id="adminNavBtn" style="display:none; background: #e6b800; color: #1a3a5c; font-weight: bold; padding: 5px 15px; border-radius: 20px;"><i class="fa-solid fa-user-tie"></i> Admin</a>
+            <a href="/login" id="authLink">Login</a>
+            <button class="nav-theme-toggle" id="themeBtn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero" style="padding: 30px 20px;">
+            <h1 style="font-size: 32px;"><i class="fa-solid fa-bed"></i> Our Rooms</h1>
+            <p>Choose from our selection of comfortable rooms.</p>
+        </div>
+        
+        <div class="filter-bar">
+            <input type="date" id="filterCheckIn">
+            <input type="date" id="filterCheckOut">
+            <select id="filterType">
+                <option value="all">All Room Types</option>
+                <option value="Standard">Standard</option>
+                <option value="Deluxe">Deluxe</option>
+                <option value="Suite">Suite</option>
+            </select>
+            <button onclick="loadRooms()"><i class="fa-solid fa-magnifying-glass"></i> Search Rooms</button>
+        </div>
+        
+        <div id="roomContainer" class="room-grid"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            const icon = document.querySelector("#themeBtn i");
+            if(icon) icon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        }
+        window.addEventListener("DOMContentLoaded", () => {
+            const icon = document.querySelector("#themeBtn i");
+            if(icon && document.body.classList.contains("dark-mode")) icon.className = "fa-solid fa-sun";
+        });
+
+        function checkAuth() {
+            const user = localStorage.getItem('user');
+            const authLink = document.getElementById('authLink');
+            const adminBtn = document.getElementById('adminNavBtn');
+            if (user) {
+                authLink.textContent = 'Logout'; authLink.href = '#';
+                authLink.onclick = function(e) { e.preventDefault(); localStorage.removeItem('user'); window.location.href = '/login'; };
+                const uObj = JSON.parse(user);
+                if(uObj.username === 'admin' && adminBtn) adminBtn.style.display = 'inline-block';
+            } else {
+                authLink.textContent = 'Login'; authLink.href = '/login'; authLink.onclick = null;
+                if(adminBtn) adminBtn.style.display = 'none';
+            }
+        }
+
+        const API_URL = '/api';
+        let allRooms = [];
+        
+        function showToast(message, isSuccess = true) {
+            Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", style: { background: isSuccess ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
+        }
+        
+        async function fetchRooms() {
+            try {
+                const response = await fetch(`${API_URL}/rooms`);
+                allRooms = await response.json();
+                displayRooms(allRooms);
+            } catch (error) { showToast('Error loading rooms', false); }
+        }
+
+        async function displayRooms(roomsToDisplay) {
+            const container = document.getElementById('roomContainer');
+            container.innerHTML = '';
+            if (roomsToDisplay.length === 0) {
+                container.innerHTML = `<p style="text-align:center; width:100%; grid-column: 1 / -1; color: var(--text-muted); font-size: 18px; padding: 20px;">No rooms available for these dates.</p>`;
+                return;
+            }
+            for (const room of roomsToDisplay) {
+                const revRes = await fetch(`${API_URL}/reviews/${room.id}`);
+                const reviews = await revRes.json();
+                let reviewsHtml = '';
+                if (reviews.length > 0) {
+                    reviewsHtml = `<div class="review-list"><strong>Recent Reviews:</strong>
+                        ${reviews.slice(0, 2).map(r => `
+                            <div class="review-item">
+                                <span style="color: #e6b800;">${'<i class="fa-solid fa-star"></i>'.repeat(r.rating)}</span> 
+                                <span style="font-weight: 600;">${r.author}</span>: "${r.comment}"
+                            </div>`).join('')}
+                    </div>`;
+                }
+                let slidesHtml = '';
+                if (room.images && room.images.length > 0) {
+                    room.images.forEach(img => { slidesHtml += `<div class="swiper-slide"><img src="/static/uploads/${img}" onerror="this.src='https://via.placeholder.com/400x200?text=Room+Image'"></div>`; });
+                } else { slidesHtml = `<div class="swiper-slide"><img src="https://via.placeholder.com/400x200?text=Room+Image"></div>`; }
+
+                let amenitiesHtml = '';
+                if (room.amenities) {
+                    const amenitiesList = room.amenities.split(',');
+                    amenitiesHtml = `<div class="amenities">${amenitiesList.map(a => `<span class="amenity-tag">${a.trim()}</span>`).join('')}</div>`;
+                }
+                let featuredBadge = room.is_featured ? `<span style="position: absolute; top: 10px; right: 10px; background: #e6b800; color: #1a3a5c; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 10;"><i class="fa-solid fa-star"></i> Featured</span>` : '';
+
+                const card = document.createElement('div');
+                card.className = 'room-card';
+                card.style.position = 'relative';
+                card.innerHTML = `
+                    ${featuredBadge}
+                    <div class="swiper mySwiper-${room.id}"><div class="swiper-wrapper">${slidesHtml}</div><div class="swiper-pagination"></div><div class="swiper-button-next" style="color: #e6b800;"></div><div class="swiper-button-prev" style="color: #e6b800;"></div></div>
+                    <h3><i class="fa-solid fa-bed"></i> Room ${room.room_number}</h3>
+                    <p><span class="room-type">${room.room_type}</span></p>
+                    ${amenitiesHtml}
+                    <p><strong>Price:</strong> <span class="price">${room.price.toLocaleString()} ETB</span>/night</p>
+                    <p>${room.description || 'Comfortable room for your stay'}</p>
+                    <p class="available"><strong><i class="fa-solid fa-circle-check"></i> Available</strong></p>
+                    <a href="/booking?room_id=${room.id}" class="btn btn-gold" style="width:100%; text-align:center; margin-top:10px;">Book Now</a>
+                    ${reviewsHtml}
+                `;
+                container.appendChild(card);
+                new Swiper(`.mySwiper-${room.id}`, { loop: true, pagination: { el: ".swiper-pagination", clickable: true }, navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" } });
+            }
+        }
+
+        async function loadRooms() {
+            const checkIn = document.getElementById('filterCheckIn').value;
+            const checkOut = document.getElementById('filterCheckOut').value;
+            const typeFilter = document.getElementById('filterType').value;
+            if (checkIn && checkOut) {
+                if (new Date(checkIn) >= new Date(checkOut)) { showToast("Check-out date must be after Check-in date.", false); return; }
+                try {
+                    const res = await fetch(`${API_URL}/check-availability`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ check_in: checkIn, check_out: checkOut }) });
+                    let availableRooms = await res.json();
+                    if (typeFilter !== 'all') availableRooms = availableRooms.filter(r => r.room_type === typeFilter);
+                    displayRooms(availableRooms);
+                } catch(e) { showToast('Error checking availability', false); }
+            } else {
+                let filtered = allRooms;
+                if (typeFilter !== 'all') filtered = filtered.filter(r => r.room_type === typeFilter);
+                displayRooms(filtered);
+            }
+        }
+        
+        checkAuth();
+        fetchRooms();
+    </script>
+</body>
+</html>
