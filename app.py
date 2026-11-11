@@ -1708,6 +1708,35 @@ def submit_contact():
 
 
 # Error handling
+
+@app.route('/api/admin/create-admin', methods=['POST'])
+@admin_required
+def admin_create_admin():
+    data = request.get_json()
+    if not data: return jsonify({'error': 'No data provided'}), 400
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not username or not email or not password:
+        return jsonify({'error': 'Username, email, and password are required'}), 400
+    if len(password) < 8:
+        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+    if User.query.filter_by(username=username).first():
+        return jsonify({'error': 'Username already exists'}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'Email already exists'}), 400
+    
+    new_admin = User(
+        username=username, 
+        email=email, 
+        password=generate_password_hash(password), 
+        is_admin=True
+    )
+    db.session.add(new_admin)
+    db.session.commit()
+    return jsonify({'message': f'Admin {username} created successfully!'}), 201
+
 @app.errorhandler(400)
 def handle_bad_request(error):
     description = getattr(error, "description", "Bad request.")
