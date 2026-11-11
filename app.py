@@ -30,6 +30,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 import os
 import io
+import qrcode
+from reportlab.platypus import Image as RLImage
 import json
 import secrets
 
@@ -181,6 +183,35 @@ def validate_image(file):
         return True
     except Exception:
         return False
+
+
+def add_pdf_header(elements, title, subtitle=""):
+    qr = qrcode.QRCode(version=1, box_size=5, border=1)
+    qr.add_data('https://syumgebre1.pythonanywhere.com')
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_buffer = io.BytesIO()
+    qr_img.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
+    
+    logo_path = 'static/logo.png'
+    logo_img = RLImage(logo_path, width=60, height=60) if os.path.exists(logo_path) else Spacer(1, 60)
+    qr_flowable = RLImage(qr_buffer, width=60, height=60)
+    
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('HeaderTitle', parent=styles['Heading1'], alignment=TA_CENTER, textColor=colors.HexColor("#D4AF37"), fontSize=20)
+    subtitle_style = ParagraphStyle('HeaderSubtitle', parent=styles['Normal'], alignment=TA_CENTER, textColor=colors.grey, fontSize=10)
+    
+    header_data = [[logo_img, Paragraph(title, title_style), qr_flowable]]
+    if subtitle:
+        header_data.append(['', Paragraph(subtitle, subtitle_style), ''])
+        
+    header_table = Table(header_data, colWidths=[80, 350, 80])
+    header_table.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'CENTER'), ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 15))
+    elements.append(Table([['']], colWidths=[510], style=[('LINEBELOW', (0,0), (-1,-1), 2, colors.HexColor("#D4AF37"))]))
+    elements.append(Spacer(1, 15))
 
 def create_data():
     if Room.query.first() is None:
