@@ -1743,6 +1743,76 @@ def admin_create_admin():
     db.session.commit()
     return jsonify({'message': f'Admin {username} created successfully!'}), 201
 
+
+
+@app.route('/api/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.get_json()
+    if not data or not data.get('email'):
+        return jsonify({'error': 'Email is required'}), 400
+    
+    email = data['email'].strip().lower()
+    user = User.query.filter_by(email=email).first()
+    
+    if not user:
+        return jsonify({'message': 'If that email exists, a reset link has been sent.'}), 200
+    
+    token = secrets.token_urlsafe(32)
+    user.reset_token = token
+    user.reset_token_expiration = datetime.utcnow() + timedelta(hours=1)
+    db.session.commit()
+    
+    reset_link = url_for('reset_password_page', _external=True) + '?token=' + token
+    
+    try:
+        msg = Message(
+            subject='YADA Hotel - Password Reset',
+            recipients=[user.email],
+            html='<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f9f9f9; border-radius: 10px;">'
+                 '<h2 style="color: #1a3a5c;">YADA Hotel - Password Reset</h2>'
+                 '<p>Hello <strong>' + user.username + '</strong>,</p>'
+                 '<p>You requested a password reset. Click the button below to set a new password. This link expires in <strong>1 hour</strong> and can only be used once.</p>'
+                 '<p style="text-align: center; margin: 30px 0;">'
+                 '<a href="' + reset_link + '" style="background: #ffd700; color: #000; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Reset Password</a>'
+                 '</p>'
+                 '<p style="color: #888; font-size: 13px;">If you didn\'t request this, you can safely ignore this email.</p>'
+                 '<p style="color: #888; font-size: 13px;">Or copy this link into your browser:<br><span style="word-break: break-all; color: #1a3a5c;">' + reset_link + '</span></p>'
+                 '</div>'
+        )
+        mail.send(msg)
+        print("Password reset email sent to " + user.email)
+        return jsonify({'message': 'If that email exists, a reset link has been sent.'}), 200
+    except Exception as e:
+        print("Email send failed: " + str(e))
+        return jsonify({'error': 'Failed to send email. Please try again later.'}), 500
+
+
+@app.route('/api/reset-password', methods=['POST'])
+def reset_password_api():
+    data = request.get_json()
+    if not data or not data.get('token') or not data.get('new_password'):
+        return jsonify({'error': 'Token and new password are required'}), 400
+    
+    token = data['token']
+    new_pw = data['new_password']
+    
+    if len(new_pw) < 8:
+        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+    
+    user = User.query.filter_by(reset_token=token).first()
+    if not user:
+        return jsonify({'error': 'Invalid or expired reset link'}), 400
+    
+    if not user.reset_token_expiration or user.reset_token_expiration < datetime.utcnow():
+        return jsonify({'error': 'Reset link has expired. Please request a new one.'}), 400
+    
+    user.password = generate_password_hash(new_pw)
+    user.reset_token = None
+    user.reset_token_expiration = None
+    db.session.commit()
+    
+    return jsonify({'message': 'Password reset successfully. You can now log in.'}), 200
+
 @app.errorhandler(400)
 def handle_bad_request(error):
     description = getattr(error, "description", "Bad request.")
