@@ -936,6 +936,8 @@ def food_receipt(order_id):
     )
     elements = []
     styles = getSampleStyleSheet()
+    add_pdf_header(elements, "Food Order Receipt")
+    
     gold = colors.HexColor("#D4AF37")
     silver = colors.HexColor("#C0C0C0")
     red = colors.HexColor("#e74c3c")
@@ -953,12 +955,7 @@ def food_receipt(order_id):
         textColor=red, fontName="Helvetica-Bold"
     )
 
-    elements.append(Paragraph("<b>YADA HOTEL</b>", title_style))
-    elements.append(Paragraph("Ethiopian Hospitality at its Finest", subtitle_style))
-    elements.append(Spacer(1, 20))
-    elements.append(Paragraph("<b>Food Order Receipt</b>", styles["Heading2"]))
-    elements.append(Spacer(1, 10))
-
+    
     user = db.session.get(User, order.user_id)
     details = [
         ["Order ID:", f"#{order.id}"],
