@@ -72,7 +72,9 @@
             const message = document.getElementById('message').value;
 
             try {
-                const res = await fetch('/api/contact', {
+                const res = await const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                fetch('/api/contact', {
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, message })
                 });

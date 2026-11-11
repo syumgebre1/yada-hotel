@@ -1,9 +1,13 @@
 Flask==3.0.3
 Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.3
+Flask-WTF==1.2.1
 Flask-Cors==4.0.1
+Flask-Migrate==4.0.7
 Flask-Mail==0.10.0
 Werkzeug==3.0.3
-reportlab==4.2.2
+reportlab==4.2.5
 python-dotenv==1.0.1
-pillow==11.3.0Pillow
+pillow==10.4.0
+qrcode==8.2
+pytest==8.3.4

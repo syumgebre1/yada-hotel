@@ -1423,7 +1423,11 @@ def admin_manage_room(room_id):
 
     if request.method == "DELETE":
         try:
-            db.session.delete(room)
+            for img in room.images:
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], img.image_filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        db.session.delete(room)
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
