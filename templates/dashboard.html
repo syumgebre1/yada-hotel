@@ -19,10 +19,6 @@
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .card { background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .card h3 { border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 0; color: #ccc; }
-        .card input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #444; box-sizing: border-box; background: #2a2a2a; color: white; font-size: 14px; }
-        .card input:focus { outline: none; border-color: #ffd700; }
-        .card button { background: #ffd700; color: black; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.3s; }
-        .card button:hover { background: #e6c200; }
         
         .admin-section { display: none; margin-top: 20px; background: #2a2a2a; border: 1px solid #ffd700; padding: 20px; border-radius: 10px; }
         .admin-section h2 { color: #ffd700; margin-top: 0; }
@@ -30,7 +26,6 @@
         ul { list-style-type: none; padding: 0; }
         li { background: #2a2a2a; margin-bottom: 10px; padding: 15px; border-radius: 8px; border-left: 4px solid #ffd700; }
         .error { color: #ff4c4c; margin-top: 10px; }
-        .success { color: #4caf50; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -61,19 +56,18 @@
             </div>
         </div>
 
-        <!-- CHANGE PASSWORD CARD -->
+        <!-- NEW: Change Password Card (added below original features) -->
         <div class="card" style="margin-top: 20px;">
             <h3>🔑 Change Password</h3>
             <form id="changePwForm">
-                <input type="password" id="currentPw" placeholder="Current Password" required>
-                <input type="password" id="newPw" placeholder="New Password (min 8 chars)" minlength="8" required>
-                <input type="password" id="confirmPw" placeholder="Confirm New Password" minlength="8" required>
-                <button type="submit">Update Password</button>
+                <input type="password" id="currentPw" placeholder="Current Password" required style="width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: white;">
+                <input type="password" id="newPw" placeholder="New Password (min 8 chars)" minlength="8" required style="width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: white;">
+                <input type="password" id="confirmPw" placeholder="Confirm New Password" minlength="8" required style="width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: white;">
+                <button type="submit" style="background:#ffd700; color:black; padding:10px 20px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:10px; width:100%;">Update Password</button>
             </form>
             <div id="pwMsg" style="margin-top: 10px; display: none;"></div>
         </div>
 
-        <!-- ADMIN DASHBOARD SECTION -->
         <div id="adminSection" class="admin-section">
             <h2>👑 Admin Controls</h2>
             <p>You have administrator privileges.</p>
@@ -131,7 +125,6 @@
             } catch (error) { }
         }
 
-        // Change Password Handler
         document.getElementById('changePwForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const currentPw = document.getElementById('currentPw').value;
@@ -140,13 +133,13 @@
             const msg = document.getElementById('pwMsg');
 
             if (newPw !== confirmPw) {
-                msg.textContent = '❌ New passwords do not match.';
+                msg.textContent = '❌ Passwords do not match.';
                 msg.style.color = '#ff4c4c';
                 msg.style.display = 'block';
                 return;
             }
             if (newPw.length < 8) {
-                msg.textContent = '❌ New password must be at least 8 characters.';
+                msg.textContent = '❌ Password must be at least 8 characters.';
                 msg.style.color = '#ff4c4c';
                 msg.style.display = 'block';
                 return;
@@ -155,10 +148,7 @@
             try {
                 const res = await fetch('/api/change-password', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                     body: JSON.stringify({ current_password: currentPw, new_password: newPw })
                 });
                 const data = await res.json();
