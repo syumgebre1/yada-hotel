@@ -1,12 +1,12 @@
 from PIL import Image
 
 from pathlib import Path
-from flask import Flask, request, jsonify, session, render_template, Response
+from flask import Flask, request, jsonify, session, render_template, Response, url_for
 from flask_cors import CORS
 from flask_login import (
     LoginManager, login_user, logout_user, login_required, current_user
 )
-from flask_mail import Mail
+from flask_mail import Mail, Message
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from database import db
 from models import (
