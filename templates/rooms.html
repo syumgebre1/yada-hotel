@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>YADA HOTEL - Rooms</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -170,7 +171,7 @@
             if (checkIn && checkOut) {
                 if (new Date(checkIn) >= new Date(checkOut)) { showToast("Check-out date must be after Check-in date.", false); return; }
                 try {
-                    const res = await fetch(`${API_URL}/check-availability`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ check_in: checkIn, check_out: checkOut }) });
+                    const res = await fetch(`${API_URL}/check-availability`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }, body: JSON.stringify({ check_in: checkIn, check_out: checkOut }) });
                     let availableRooms = await res.json();
                     if (typeFilter !== 'all') availableRooms = availableRooms.filter(r => r.room_type === typeFilter);
                     displayRooms(availableRooms);
