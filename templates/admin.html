@@ -286,6 +286,14 @@
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+}
+
         const API_URL = '/api';
         
         // --- HELPER FUNCTION TO GET CSRF TOKEN ---
@@ -369,7 +377,7 @@
             rooms.forEach(r => {
                 tbody.innerHTML += `
                     <tr>
-                        <td>${r.room_number}</td><td>${r.room_type}</td><td>${r.price.toLocaleString()} ETB</td>
+                        <td>${escapeHTML(r.room_number)}</td><td>${r.room_type}</td><td>${r.price.toLocaleString()} ETB</td>
                         <td>${r.is_featured ? '<i class="fa-solid fa-star" style="color: #e6b800;"></i>' : '-'}</td>
                         <td><span class="badge ${r.available ? 'badge-available' : 'badge-occupied'}">${r.available ? 'Available' : 'Occupied'}</span></td>
                         <td>
@@ -387,7 +395,7 @@
             const tbody = document.getElementById('bookingsTableBody');
             tbody.innerHTML = '';
             bookings.forEach(b => {
-                tbody.innerHTML += `<tr><td>#${b.id}</td><td>${b.room_number}</td><td>${b.guest_name}</td><td>${b.check_in}</td><td>${b.check_out}</td><td>${b.total_price.toLocaleString()} ETB</td><td><span class="badge badge-${b.status}">${b.status.toUpperCase()}</span></td></tr>`;
+                tbody.innerHTML += `<tr><td>#${b.id}</td><td>${b.room_number}</td><td>${escapeHTML(b.guest_name)}</td><td>${b.check_in}</td><td>${b.check_out}</td><td>${b.total_price.toLocaleString()} ETB</td><td><span class="badge badge-${b.status}">${b.status.toUpperCase()}</span></td></tr>`;
             });
         }
 
@@ -405,9 +413,9 @@
                 tbody.innerHTML += `
                     <tr>
                         <td>Room ${r.room_number}</td>
-                        <td>${r.author}</td>
+                        <td>${escapeHTML(r.author)}</td>
                         <td><span style="color: #e6b800;">${'<i class="fa-solid fa-star"></i>'.repeat(r.rating)}</span></td>
-                        <td>${r.comment || 'No comment'}</td>
+                        <td>${escapeHTML(r.comment) || 'No comment'}</td>
                         <td>${r.date}</td>
                     </tr>`;
             });
@@ -420,7 +428,7 @@
             const tbody = document.getElementById('guestsTableBody');
             tbody.innerHTML = '';
             guests.forEach(g => {
-                tbody.innerHTML += `<tr><td>${g.id}</td><td>${g.username}</td><td>${g.email}</td><td>${g.total_bookings}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${g.id}</td><td>${escapeHTML(g.username)}</td><td>${escapeHTML(g.email)}</td><td>${g.total_bookings}</td></tr>`;
             });
         }
 
@@ -445,8 +453,8 @@
                 tbody.innerHTML += `
                     <tr>
                         <td>${img}</td>
-                        <td>${i.name}</td>
-                        <td>${i.category}</td>
+                        <td>${escapeHTML(i.name)}</td>
+                        <td>${escapeHTML(i.category)}</td>
                         <td>${i.price.toLocaleString()} ETB</td>
                         <td>${i.is_special ? '<i class="fa-solid fa-star" style="color: #e6b800;"></i>' : '-'}</td>
                         <td>
@@ -471,9 +479,9 @@
                 tbody.innerHTML += `
                     <tr>
                         <td>#${o.id}</td>
-                        <td>${o.user}</td>
+                        <td>${escapeHTML(o.user)}</td>
                         <td>${o.room ? `<strong>Room ${o.room}</strong>` : 'Takeaway'}</td>
-                        <td>${itemsParsed}</td>
+                        <td>${escapeHTML(itemsParsed)}</td>
                         <td>${o.total.toLocaleString()} ETB</td>
                         <td><span class="badge ${statusBadge}">${o.status.toUpperCase()}</span></td>
                         <td>
@@ -499,8 +507,8 @@
             reservations.forEach(r => {
                 tbody.innerHTML += `
                     <tr>
-                        <td>${r.name}</td>
-                        <td>${r.phone}</td>
+                        <td>${escapeHTML(r.name)}</td>
+                        <td>${escapeHTML(r.phone)}</td>
                         <td>${r.date}</td>
                         <td>${r.time}</td>
                         <td>${r.guests}</td>

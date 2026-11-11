@@ -69,6 +69,14 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+}
+
         if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
         function toggleTheme() {
             document.body.classList.toggle("dark-mode");
@@ -128,7 +136,7 @@
                         ${reviews.slice(0, 2).map(r => `
                             <div class="review-item">
                                 <span style="color: #e6b800;">${'<i class="fa-solid fa-star"></i>'.repeat(r.rating)}</span> 
-                                <span style="font-weight: 600;">${r.author}</span>: "${r.comment}"
+                                <span style="font-weight: 600;">${escapeHTML(r.author)}</span>: "${escapeHTML(r.comment)}"
                             </div>`).join('')}
                     </div>`;
                 }
@@ -150,11 +158,11 @@
                 card.innerHTML = `
                     ${featuredBadge}
                     <div class="swiper mySwiper-${room.id}"><div class="swiper-wrapper">${slidesHtml}</div><div class="swiper-pagination"></div><div class="swiper-button-next" style="color: #e6b800;"></div><div class="swiper-button-prev" style="color: #e6b800;"></div></div>
-                    <h3><i class="fa-solid fa-bed"></i> Room ${room.room_number}</h3>
-                    <p><span class="room-type">${room.room_type}</span></p>
+                    <h3><i class="fa-solid fa-bed"></i> Room ${escapeHTML(room.room_number)}</h3>
+                    <p><span class="room-type">${escapeHTML(room.room_type)}</span></p>
                     ${amenitiesHtml}
                     <p><strong>Price:</strong> <span class="price">${room.price.toLocaleString()} ETB</span>/night</p>
-                    <p>${room.description || 'Comfortable room for your stay'}</p>
+                    <p>${escapeHTML(room.description) || 'Comfortable room for your stay'}</p>
                     <p class="available"><strong><i class="fa-solid fa-circle-check"></i> Available</strong></p>
                     <a href="/booking?room_id=${room.id}" class="btn btn-gold" style="width:100%; text-align:center; margin-top:10px;">Book Now</a>
                     ${reviewsHtml}

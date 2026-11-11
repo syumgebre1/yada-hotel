@@ -105,6 +105,14 @@
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+}
+
         if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
         function toggleTheme() {
             document.body.classList.toggle("dark-mode");
@@ -149,8 +157,8 @@
                                 <img src="${img}" onerror="this.src='https://via.placeholder.com/400x200?text=Food+Image'">
                                 <div class="content">
                                     <span class="special-badge">TODAY'S SPECIAL</span>
-                                    <h3>${item.name}</h3>
-                                    <p>${item.description || ''}</p>
+                                    <h3>${escapeHTML(item.name)}</h3>
+                                    <p>${escapeHTML(item.description) || ''}</p>
                                     <div class="price">${item.price.toLocaleString()} ETB</div>
                                     <button onclick="addToCart(${item.id})" class="btn btn-gold" style="width: 100%;">Add to Cart</button>
                                 </div>
@@ -174,8 +182,8 @@
                                 <img src="${img}" onerror="this.src='https://via.placeholder.com/400x200?text=Food+Image'">
                                 <div class="content">
                                     <span class="category">${item.category}</span>
-                                    <h3>${item.name}</h3>
-                                    <p>${item.description || ''}</p>
+                                    <h3>${escapeHTML(item.name)}</h3>
+                                    <p>${escapeHTML(item.description) || ''}</p>
                                     <div class="price">${item.price.toLocaleString()} ETB</div>
                                     <button onclick="addToCart(${item.id})" class="btn btn-gold" style="width: 100%;">Add to Cart</button>
                                 </div>
@@ -224,7 +232,7 @@
                     container.innerHTML += `
                         <div class="cart-item">
                             <div>
-                                <h4>${item.name}</h4>
+                                <h4>${escapeHTML(item.name)}</h4>
                                 <p style="font-size: 12px; color: var(--text-muted);">${item.quantity} x ${item.price} ETB</p>
                             </div>
                             <button onclick="removeFromCart(${item.id})" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
