@@ -46,7 +46,7 @@ if not app.config["SECRET_KEY"] or len(app.config["SECRET_KEY"]) < 32:
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///yada_hotel.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_SECURE"] = os.environ.get("APP_ENV") == "production"
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_PATH"] = "/"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
@@ -159,6 +159,10 @@ def save_uploaded_file(file, prefix="upload"):
     extension = Path(safe_name).suffix.lower()
     stem = Path(safe_name).stem[:60] or prefix
     filename = f"{prefix}_{secrets.token_hex(8)}_{stem}{extension}"
+    # --- SECURITY FIX: VALIDATE IMAGE ---
+    if not validate_image(file):
+        return None
+
     file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
     return filename
 

@@ -15,3 +15,11 @@ venv/
 instance/*.db
 instance/*.sqlite
 instance/*.sqlite3
+*.bak
+*.backup-*
+app.py.before-*
+templates/*.backup-*
+templates/*.bak
+.env
+venv/
+__pycache__/
