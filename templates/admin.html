@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRF Token Meta Tag -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>YADA HOTEL - Admin Panel</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
@@ -49,7 +50,7 @@
 <body>
     <nav class="navbar">
         <a href="/" class="navbar-brand">
-            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px; width: auto; object-fit: contain;">
         </a>
         <div class="navbar-links">
             <a href="/">Home</a>
@@ -224,43 +225,6 @@
         </div>
     </div>
 
-    <!-- EDIT MENU ITEM MODAL -->
-    <div class="modal" id="editMenuModal">
-        <div class="modal-content">
-            <h3><i class="fa-solid fa-pen-to-square"></i> Edit Food Item</h3>
-            <form id="editMenuForm" enctype="multipart/form-data">
-                <input type="hidden" id="editMenuId">
-                <label for="editMenuName">Food Name</label>
-                <input type="text" id="editMenuName" placeholder="Food Name" required>
-                <label for="editMenuDesc">Description</label>
-                <textarea id="editMenuDesc" placeholder="Description" rows="2"></textarea>
-                <label for="editMenuPrice">Price (ETB)</label>
-                <input type="number" id="editMenuPrice" min="0" step="0.01" placeholder="Price (ETB)" required>
-                <label for="editMenuCategory">Category</label>
-                <select id="editMenuCategory" required>
-                    <option value="Breakfast">Breakfast</option>
-                    <option value="Lunch">Lunch</option>
-                    <option value="Dinner">Dinner</option>
-                    <option value="Drinks">Drinks</option>
-                    <option value="Dessert">Dessert</option>
-                </select>
-                <label style="display:block; margin:10px 0 5px; font-weight:bold; color:var(--text-color);">Current Photo</label>
-                <img id="editMenuCurrentImage" alt="Current food photo"
-                     style="display:none; width:120px; height:90px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
-                <p id="editMenuNoImage" style="color:var(--text-muted);">No photo currently saved.</p>
-                <label for="editMenuImage">Replace Photo (optional)</label>
-                <input type="file" id="editMenuImage" accept="image/*">
-                <div style="display:flex; align-items:center; gap:10px; margin:12px 0;">
-                    <input type="checkbox" id="editMenuSpecial" style="width:auto; margin:0;">
-                    <label for="editMenuSpecial" style="margin:0; color:var(--text-color);">Mark as Today's Special</label>
-                </div>
-                <button type="submit" class="btn btn-gold" style="width:100%; margin-top:10px;">Save Changes</button>
-                <button type="button" class="btn" style="width:100%; margin-top:8px;"
-                        onclick="closeModal('editMenuModal')">Cancel</button>
-            </form>
-        </div>
-    </div>
-
     <!-- ADD MENU ITEM MODAL -->
     <div class="modal" id="addMenuModal">
         <div class="modal-content">
@@ -305,6 +269,13 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
         const API_URL = '/api';
+        
+        // --- HELPER FUNCTION TO GET CSRF TOKEN ---
+        function getCSRFToken() {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            return meta ? meta.getAttribute('content') : '';
+        }
+
         if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
         function toggleTheme() {
             document.body.classList.toggle("dark-mode");
@@ -317,22 +288,18 @@
             Toastify({ text: message, duration: 3000, close: true, gravity: "top", position: "right", style: { background: isSuccess ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
         }
 
-        // FIXED CHECK AUTH
         async function checkAuth() {
             try {
                 const res = await fetch(`${API_URL}/profile`, { credentials: 'include' });
                 if (res.ok) {
                     const userData = await res.json();
-                    // ONLY KICK OUT IF IS_ADMIN IS EXPLICITLY FALSE
                     if (userData.is_admin === false || userData.is_admin === undefined) {
                         window.location.href = '/dashboard'; 
                     }
                 } else {
                     window.location.href = '/login';
                 }
-            } catch(e) { 
-                window.location.href = '/login'; 
-            }
+            } catch(e) { window.location.href = '/login'; }
         }
 
         async function loadStats() {
@@ -465,7 +432,6 @@
                         <td>${i.price.toLocaleString()} ETB</td>
                         <td>${i.is_special ? '<i class="fa-solid fa-star" style="color: #e6b800;"></i>' : '-'}</td>
                         <td>
-                            <button class="btn-sm" title="Edit food item" style="margin-right:5px;" onclick="editMenuItem(${i.id})"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button class="btn-sm btn-delete" onclick="deleteMenuItem(${i.id})"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
@@ -546,7 +512,7 @@
 
         async function updateResStatus(id, status) {
             await fetch(`${API_URL}/admin/table-reservations/${id}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() }, credentials: 'include',
                 body: JSON.stringify({ status })
             });
             showToast('Reservation status updated!');
@@ -554,7 +520,7 @@
 
         async function updateOrderStatus(orderId, newStatus) {
             const res = await fetch(`${API_URL}/admin/food-orders/${orderId}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() }, credentials: 'include',
                 body: JSON.stringify({ status: newStatus })
             });
             if (res.ok) { showToast('Status updated!', true); loadFoodOrders(); }
@@ -605,7 +571,7 @@
         document.getElementById('settingsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const res = await fetch(`${API_URL}/admin/settings`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() }, credentials: 'include',
                 body: JSON.stringify({ whatsapp: document.getElementById('setWhatsapp').value, telegram: document.getElementById('setTelegram').value, gmail: document.getElementById('setGmail').value, address: document.getElementById('setAddress').value })
             });
             if (res.ok) showToast('✅ Settings updated successfully!', true);
@@ -626,7 +592,12 @@
             for (let i = 0; i < imageFiles.length; i++) { formData.append('images', imageFiles[i]); }
 
             try {
-                const res = await fetch(`${API_URL}/admin/rooms`, { method: 'POST', credentials: 'include', body: formData });
+                const res = await fetch(`${API_URL}/admin/rooms`, { 
+                    method: 'POST', 
+                    headers: { 'X-CSRFToken': getCSRFToken() }, 
+                    credentials: 'include', 
+                    body: formData 
+                });
                 if (res.ok) {
                     showToast('✅ Room added with gallery!', true);
                     closeModal('addRoomModal');
@@ -634,7 +605,7 @@
                     document.getElementById('addRoomForm').reset();
                 } else {
                     const data = await res.json();
-                    showToast('❌ ' + data.error, false);
+                    showToast('❌ ' + (data.error || 'Failed to add room'), false);
                 }
             } catch(e) { showToast('❌ Connection error', false); }
         });
@@ -654,17 +625,11 @@
             if (imageFile) formData.append('image', imageFile);
 
             try {
-                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
-                if (!csrfToken) {
-                    showToast('Security token missing. Refresh the page and sign in again.', false);
-                    return;
-                }
-                const res = await fetch(`${API_URL}/admin/rooms/${roomId}/edit`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'X-CSRFToken': csrfToken },
-                    body: formData
+                const res = await fetch(`${API_URL}/admin/rooms/${roomId}/edit`, { 
+                    method: 'POST', 
+                    headers: { 'X-CSRFToken': getCSRFToken() }, 
+                    credentials: 'include', 
+                    body: formData 
                 });
                 if (res.ok) {
                     showToast('✅ Room updated successfully!', true);
@@ -672,7 +637,7 @@
                     loadRooms(); loadStats();
                 } else {
                     const data = await res.json();
-                    showToast('❌ ' + data.error, false);
+                    showToast('❌ ' + (data.error || 'Failed to update room'), false);
                 }
             } catch(e) { showToast('❌ Connection error', false); }
         });
@@ -690,7 +655,12 @@
             if (imgFile) formData.append('image', imgFile);
 
             try {
-                const res = await fetch(`${API_URL}/admin/menu`, { method: 'POST', credentials: 'include', body: formData });
+                const res = await fetch(`${API_URL}/admin/menu`, { 
+                    method: 'POST', 
+                    headers: { 'X-CSRFToken': getCSRFToken() }, 
+                    credentials: 'include', 
+                    body: formData 
+                });
                 if (res.ok) {
                     showToast('✅ Menu item added!', true);
                     closeModal('addMenuModal');
@@ -700,49 +670,6 @@
             } catch(e) { showToast('❌ Connection error', false); }
         });
 
-        document.getElementById('editMenuForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const id = document.getElementById('editMenuId').value;
-            const formData = new FormData();
-            formData.append('name', document.getElementById('editMenuName').value.trim());
-            formData.append('description', document.getElementById('editMenuDesc').value);
-            formData.append('price', document.getElementById('editMenuPrice').value);
-            formData.append('category', document.getElementById('editMenuCategory').value);
-            formData.append('is_special', String(document.getElementById('editMenuSpecial').checked));
-
-            const imageFile = document.getElementById('editMenuImage').files[0];
-            if (imageFile) formData.append('image', imageFile);
-
-            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-            const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
-            if (!csrfToken) {
-                showToast('Security token missing. Refresh the page and sign in again.', false);
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/admin/menu/${id}/edit`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'X-CSRFToken': csrfToken },
-                    body: formData
-                });
-                const data = await res.json().catch(() => ({}));
-
-                if (!res.ok) {
-                    showToast(data.error || 'Failed to update food item.', false);
-                    return;
-                }
-
-                showToast('Food item updated successfully!', true);
-                closeModal('editMenuModal');
-                await loadMenu();
-            } catch (error) {
-                showToast('Connection error while updating food item.', false);
-            }
-        });
-
         document.getElementById('addGalleryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData();
@@ -750,7 +677,12 @@
             formData.append('image', document.getElementById('galleryImage').files[0]);
 
             try {
-                const res = await fetch(`${API_URL}/admin/gallery`, { method: 'POST', credentials: 'include', body: formData });
+                const res = await fetch(`${API_URL}/admin/gallery`, { 
+                    method: 'POST', 
+                    headers: { 'X-CSRFToken': getCSRFToken() }, 
+                    credentials: 'include', 
+                    body: formData 
+                });
                 if (res.ok) {
                     showToast('✅ Photo added!', true);
                     closeModal('addGalleryModal');
@@ -762,62 +694,25 @@
 
         async function deleteRoom(id) {
             if (!confirm('Delete this room?')) return;
-            await fetch(`${API_URL}/admin/rooms/${id}`, { method: 'DELETE', credentials: 'include' });
+            await fetch(`${API_URL}/admin/rooms/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': getCSRFToken() }, credentials: 'include' });
             loadRooms(); loadStats();
-        }
-
-        async function editMenuItem(id) {
-            try {
-                const res = await fetch(`${API_URL}/menu`, { credentials: 'include' });
-                if (!res.ok) throw new Error('Could not load menu items');
-                const items = await res.json();
-                const item = items.find(entry => Number(entry.id) === Number(id));
-                if (!item) {
-                    showToast('Food item not found. Refresh the menu and try again.', false);
-                    return;
-                }
-
-                document.getElementById('editMenuId').value = item.id;
-                document.getElementById('editMenuName').value = item.name || '';
-                document.getElementById('editMenuDesc').value = item.description || '';
-                document.getElementById('editMenuPrice').value = item.price ?? '';
-                document.getElementById('editMenuCategory').value = item.category || 'Lunch';
-                document.getElementById('editMenuSpecial').checked = Boolean(item.is_special);
-                document.getElementById('editMenuImage').value = '';
-
-                const preview = document.getElementById('editMenuCurrentImage');
-                const noImage = document.getElementById('editMenuNoImage');
-                if (item.image_filename) {
-                    preview.src = `/static/uploads/${encodeURIComponent(item.image_filename)}`;
-                    preview.style.display = 'block';
-                    noImage.style.display = 'none';
-                } else {
-                    preview.removeAttribute('src');
-                    preview.style.display = 'none';
-                    noImage.style.display = 'block';
-                }
-
-                document.getElementById('editMenuModal').classList.add('active');
-            } catch (error) {
-                showToast('Could not load food item details.', false);
-            }
         }
 
         async function deleteMenuItem(id) {
             if (!confirm('Delete this menu item?')) return;
-            await fetch(`${API_URL}/admin/menu/${id}`, { method: 'DELETE', credentials: 'include' });
+            await fetch(`${API_URL}/admin/menu/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': getCSRFToken() }, credentials: 'include' });
             loadMenu();
         }
 
         async function deleteGalleryImage(id) {
             if (!confirm('Delete this photo?')) return;
-            await fetch(`${API_URL}/admin/gallery/${id}`, { method: 'DELETE', credentials: 'include' });
+            await fetch(`${API_URL}/admin/gallery/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': getCSRFToken() }, credentials: 'include' });
             loadGallery();
         }
 
         function logout() {
             localStorage.removeItem('user');
-            fetch(`${API_URL}/logout`, { method: 'POST', credentials: 'include' }).finally(() => { window.location.href = '/login'; });
+            fetch(`${API_URL}/logout`, { method: 'POST', headers: { 'X-CSRFToken': getCSRFToken() }, credentials: 'include' }).finally(() => { window.location.href = '/login'; });
         }
         document.getElementById('logoutLink').onclick = (e) => { e.preventDefault(); logout(); };
         document.getElementById('logoutBtn').onclick = logout;
