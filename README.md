@@ -1,66 +1,33 @@
-# 🏨 YADA HOTEL - Full-Stack Hotel Management System
+# YADA Hotel
 
-A complete, production-ready web application for managing a hotel's operations. This system handles everything from public room bookings and restaurant orders to a secure administrative dashboard with PDF receipt generation.
+A full-stack hotel management web application built with Flask, SQLAlchemy, and vanilla JavaScript.
 
-Built with **Python (Flask)** and **Vanilla JavaScript**, this project focuses on performance, security, and a seamless user experience.
+## Features
 
-🔗 **Live Demo:** [https://syumgebre1.pythonanywhere.com](https://syumgebre1.pythonanywhere.com)
+- User registration, login, and secure session management
+- Room browsing, availability checking, and booking
+- Restaurant menu, cart, and food ordering
+- Table reservations
+- Gallery with image uploads
+- Admin panel with full CRUD for rooms, menu, gallery, and bookings
+- PDF generation (food receipts, kitchen tickets) with logo and QR code
+- Password change (admin and users)
+- CSRF protection across all POST/PUT/DELETE requests
 
----
+## Tech Stack
 
-## ✨ Core Features
+- Flask, Flask-SQLAlchemy, Flask-Login, Flask-WTF, Flask-Migrate, Flask-Mail
+- SQLite (dev) / compatible with PostgreSQL
+- Pillow for image validation, ReportLab for PDFs, qrcode for QR generation
+- Vanilla JavaScript frontend
 
-### 🛏️ For Guests (Public & Authenticated)
-*   **Room Bookings:** Browse rooms with a dynamic image carousel, filter by type, and check real-time date availability.
-*   **Restaurant & Cart:** View the menu (including "Today's Special"), add items to a persistent cart, and checkout with an option for room service delivery.
-*   **User Dashboard:** A modern sidebar layout where guests can manage bookings, view food orders, download PDF invoices/receipts, update profiles, and change passwords.
-*   **Reviews & Ratings:** Guests can leave 5-star reviews for rooms they have stayed in.
-*   **Multi-Language Support:** Full English and Amharic (አማርኛ) translation toggle.
-*   **Dark Mode:** A sleek, persistent dark theme for night-time browsing.
+## Deployment
 
-### 🔐 For Administrators (Secure Dashboard)
-*   **Analytics:** Real-time revenue tracking with Chart.js visualization (last 7 days).
-*   **Calendar View:** FullCalendar integration to see all room bookings at a glance.
-*   **Room Management:** Add, edit, or delete rooms. Upload multiple images per room, set amenities, and feature rooms on the homepage.
-*   **Menu Management:** Add, edit, or delete food items. Upload food images and mark items as "Today's Special."
-*   **Order Management:** Track food orders by status (Pending, Preparing, Delivered) and print kitchen tickets.
-*   **PDF Generation:** Export full booking reports and individual food order receipts (styled with gold/silver/red branding).
-*   **Site Settings:** Update the hotel's WhatsApp number, Telegram, email, and address dynamically from the dashboard.
+### Local Setup
 
----
-
-## 🛠️ Tech Stack
-
-*   **Backend:** Python, Flask, Flask-Login, Flask-Mail, Flask-WTF (CSRF Protection)
-*   **Database:** SQLite (with SQLAlchemy ORM)
-*   **Frontend:** HTML5, CSS3, Vanilla JavaScript (ES6+)
-*   **Libraries (Frontend):** Swiper.js (carousels), Chart.js (analytics), FullCalendar (scheduling), Toastify.js (notifications), FontAwesome (icons)
-*   **PDF Generation:** ReportLab (Python)
-*   **Deployment:** PythonAnywhere
-
----
-
-## 📂 Project Structure
-
-```text
-yada-hotel/
-├── app.py                  # Main Flask application & API routes
-├── models.py               # SQLAlchemy database models
-├── database.py             # Database instance (prevents circular imports)
-├── create_admin.py         # Script to generate the initial admin user
-├── test_app.py             # Automated tests (pytest)
-├── requirements.txt        # Python dependencies
-├── .env.example            # Environment variables template
-├── instance/               # SQLite database (created automatically)
-├── static/                 # CSS, JS, PWA icons, and uploaded images
-│   ├── uploads/            # Room, food, and gallery images
-│   ├── logo.jpg            # Hotel branding
-│   ├── style.css           # Global styles & Dark Mode variables
-│   ├── manifest.json       # PWA manifest
-│   └── service-worker.js   # PWA offline caching
-└── templates/              # Jinja2 HTML templates
-    ├── index.html          # Landing page
-    ├── rooms.html          # Room listings & filters
-    ├── restaurant.html     # Food menu & cart
-    ├── dashboard.html      # User profile & orders
-    └── admin.html          # Admin control panel
+```bash
+git clone https://github.com/syumgebre1/yada-hotel.git
+cd yada-hotel
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
