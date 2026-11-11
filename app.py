@@ -352,7 +352,6 @@ def server_error(error):
 
 
 # Authentication APIs
-@csrf.exempt
 @app.route("/api/register", methods=["POST", "OPTIONS"])
 def register():
     if request.method == "OPTIONS":
@@ -1677,7 +1676,6 @@ def kitchen_ticket(order_id):
     )
 
 
-@csrf.exempt
 @app.route("/api/contact", methods=["POST"])
 def submit_contact():
     data = get_json_data()
