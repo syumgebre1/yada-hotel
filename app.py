@@ -1065,6 +1065,9 @@ def admin_delete_gallery(image_id):
         return jsonify({"error": "Not found"}), 404
 
     try:
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], image.image_filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
         db.session.delete(image)
         db.session.commit()
     except SQLAlchemyError:
@@ -1432,6 +1435,8 @@ def admin_manage_room(room_id):
                 filepath = os.path.join(app.config["UPLOAD_FOLDER"], img.image_filename)
                 if os.path.exists(filepath):
                     os.remove(filepath)
+            if Booking.query.filter_by(room_id=room.id).count() > 0:
+                return jsonify({'error': 'Cannot delete a room with existing bookings.'}), 400
             db.session.delete(room)
             db.session.commit()
         except SQLAlchemyError:
@@ -1566,6 +1571,10 @@ def admin_delete_menu(item_id):
         return jsonify({"error": "Item not found"}), 404
 
     try:
+        if item.image_filename:
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], item.image_filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
         db.session.delete(item)
         db.session.commit()
     except SQLAlchemyError:
