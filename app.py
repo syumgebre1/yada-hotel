@@ -276,6 +276,12 @@ def init_db():
 
 
 # HTML routes
+@app.route('/menu')
+def menu_page(): return render_template('menu.html')
+
+@app.route('/cart')
+def cart_page(): return render_template('cart.html')
+
 @app.route("/")
 def home():
     return render_template("index.html")

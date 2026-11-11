@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>YADA HOTEL - Menu</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        .menu-section { margin: 30px 0; }
+        .menu-section h2 { font-family: 'Playfair Display', serif; color: var(--card-title); border-bottom: 3px solid #e6b800; padding-bottom: 15px; font-size: 28px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+        .menu-item { background: var(--card-bg); border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.08); transition: all 0.4s; border: 1px solid var(--border-color); }
+        .menu-item:hover { transform: translateY(-10px); box-shadow: 0 20px 50px rgba(0,0,0,0.12); }
+        .menu-item img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-bottom: 15px; }
+        .menu-item .name { font-size: 20px; font-weight: 700; color: var(--card-title); font-family: 'Playfair Display', serif; }
+        .menu-item .price { color: #e6b800; font-size: 24px; font-weight: 700; margin: 10px 0; }
+        .menu-item .desc { color: var(--text-muted); font-size: 14px; margin-bottom: 15px; }
+        .menu-item .btn-small { padding: 10px 25px; font-size: 14px; border-radius: 30px; background: #ffd700; color: black; border: none; cursor: pointer; font-weight: bold; }
+        .cart-badge { background: #ff4444; color: white; padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-left: 5px; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px;"></a>
+        <div class="navbar-links">
+            <a href="/">Home</a>
+            <a href="/rooms">Rooms</a>
+            <a href="/restaurant">Restaurant</a>
+            <a href="/menu">Menu</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/login" id="authLink">Login</a>
+            <a href="/cart" class="cart-link">🛒 Cart <span id="cartCount" class="cart-badge">0</span></a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero" style="padding: 30px 20px;">
+            <h1 style="font-family: 'Playfair Display', serif; font-size: 42px;">🍽️ YADA Restaurant & Bar</h1>
+            <p>Delicious food and refreshing drinks, served with love.</p>
+        </div>
+
+        <div class="menu-section">
+            <h2>🍔 Food Menu</h2>
+            <div class="menu-grid" id="foodMenu"></div>
+        </div>
+
+        <div class="menu-section">
+            <h2>🥤 Drinks Menu</h2>
+            <div class="menu-grid" id="drinksMenu"></div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        }
+        
+        function showToast(msg) {
+            Toastify({ text: msg, duration: 3000, close: true, gravity: "top", position: "right", style: { background: "linear-gradient(to right, #00b09b, #96c93d)" } }).showToast();
+        }
+        function showError(msg) {
+            Toastify({ text: msg, duration: 3000, close: true, gravity: "top", position: "right", style: { background: "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
+        }
+
+        async function loadMenu() {
+            try {
+                const res = await fetch('/api/menu');
+                const items = await res.json();
+                
+                const foods = items.filter(i => ['Breakfast', 'Lunch', 'Dinner', 'Dessert'].includes(i.category));
+                const drinks = items.filter(i => i.category === 'Drinks');
+                
+                const foodContainer = document.getElementById('foodMenu');
+                const drinkContainer = document.getElementById('drinksMenu');
+                
+                if (foods.length === 0) foodContainer.innerHTML = '<p style="color: var(--text-muted);">No food items yet.</p>';
+                else {
+                    foodContainer.innerHTML = foods.map(item => `
+                        <div class="menu-item">
+                            ${item.image_filename ? `<img src="/static/uploads/${escapeHTML(item.image_filename)}" onerror="this.src='https://via.placeholder.com/400x200?text=Food'">` : ''}
+                            <div class="name">${escapeHTML(item.name)}</div>
+                            <div class="price">${item.price.toLocaleString()} ETB</div>
+                            <div class="desc">${escapeHTML(item.description || '')}</div>
+                            <button onclick="addToCart(${item.id})" class="btn-small">Add to Cart</button>
+                        </div>
+                    `).join('');
+                }
+                
+                if (drinks.length === 0) drinkContainer.innerHTML = '<p style="color: var(--text-muted);">No drinks yet.</p>';
+                else {
+                    drinkContainer.innerHTML = drinks.map(item => `
+                        <div class="menu-item">
+                            ${item.image_filename ? `<img src="/static/uploads/${escapeHTML(item.image_filename)}" onerror="this.src='https://via.placeholder.com/400x200?text=Drink'">` : ''}
+                            <div class="name">${escapeHTML(item.name)}</div>
+                            <div class="price">${item.price.toLocaleString()} ETB</div>
+                            <div class="desc">${escapeHTML(item.description || '')}</div>
+                            <button onclick="addToCart(${item.id})" class="btn-small">Add to Cart</button>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function addToCart(itemId) {
+            const user = localStorage.getItem('user');
+            if (!user) { showError('Please login to order.'); setTimeout(() => window.location.href = '/login', 1500); return; }
+            
+            try {
+                const res = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ menu_item_id: itemId })
+                });
+                if (res.ok) { showToast('✅ Added to cart!'); loadCartCount(); }
+                else { showError('Failed to add to cart'); }
+            } catch(e) { showError('Connection error'); }
+        }
+
+        async function loadCartCount() {
+            try {
+                const res = await fetch('/api/cart');
+                if (res.ok) {
+                    const cart = await res.json();
+                    const count = cart.reduce((sum, i) => sum + i.quantity, 0);
+                    document.getElementById('cartCount').textContent = count;
+                }
+            } catch(e) {}
+        }
+
+        loadMenu();
+        loadCartCount();
+    </script>
+</body>
+</html>

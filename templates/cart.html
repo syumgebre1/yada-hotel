@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>YADA HOTEL - Order Cart</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        .cart-container { max-width: 800px; margin: 0 auto; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 2px solid var(--border-color); }
+        .cart-item-info { display: flex; align-items: center; gap: 20px; }
+        .cart-item-name { font-size: 18px; font-weight: 600; color: var(--card-title); }
+        .cart-item-price { color: var(--text-muted); font-size: 14px; }
+        .cart-total { font-size: 28px; font-weight: 700; color: #e6b800; text-align: right; padding: 20px 0; border-top: 3px solid #e6b800; }
+        .empty-cart { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+        .empty-cart .big-icon { font-size: 80px; display: block; margin-bottom: 20px; }
+        .btn-remove { background: none; border: none; color: #e74c3c; font-size: 20px; cursor: pointer; padding: 5px 10px; }
+        .btn-remove:hover { transform: scale(1.2); }
+        .cart-actions { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+        .cart-actions .btn { flex: 1; text-align: center; min-width: 120px; padding: 14px 20px; font-size: 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-gold { background: #ffd700; color: black; }
+        .btn-gold:hover { background: #e6c200; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-primary { background: #2a5a8a; color: white; }
+        .room-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand"><img src="{{ url_for('static', filename='logo.png') }}" alt="YADA HOTEL" style="height: 45px;"></a>
+        <div class="navbar-links">
+            <a href="/">Home</a>
+            <a href="/rooms">Rooms</a>
+            <a href="/restaurant">Restaurant</a>
+            <a href="/menu">Menu</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/login" id="authLink">Login</a>
+        </div>
+    </nav>
+
+    <div class="container cart-container">
+        <div class="hero" style="padding: 30px 20px;">
+            <h1 style="font-size: 32px;">🍽️ Order Cart</h1>
+            <p>Review your food and drink orders from YADA Restaurant</p>
+        </div>
+        <div id="cartItems"></div>
+    </div>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        }
+        
+        function showToast(msg) {
+            Toastify({ text: msg, duration: 3000, close: true, gravity: "top", position: "right", style: { background: "linear-gradient(to right, #00b09b, #96c93d)" } }).showToast();
+        }
+        function showError(msg) {
+            Toastify({ text: msg, duration: 3000, close: true, gravity: "top", position: "right", style: { background: "linear-gradient(to right, #ff5f6d, #ffc371)" } }).showToast();
+        }
+
+        async function renderCart() {
+            const user = localStorage.getItem('user');
+            const container = document.getElementById('cartItems');
+            
+            if (!user) {
+                container.innerHTML = `<div class="empty-cart"><span class="big-icon">🔒</span><h3>Please login to view your cart</h3><a href="/login" class="btn btn-gold" style="display:inline-block; padding:14px 40px; text-decoration:none; border-radius:8px;">Login</a></div>`;
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/cart');
+                if (!res.ok) { container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Failed to load cart.</p>'; return; }
+                const cart = await res.json();
+                
+                if (cart.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-cart">
+                            <span class="big-icon">🍽️</span>
+                            <h3>Your Order Cart is Empty</h3>
+                            <p>Browse our menu and add some delicious food or drinks!</p>
+                            <br>
+                            <a href="/menu" class="btn btn-gold" style="display:inline-block; padding:14px 40px; text-decoration:none; border-radius:8px;">📋 View Menu</a>
+                        </div>`;
+                    return;
+                }
+                
+                let total = 0;
+                let html = '<div style="background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);"><h3 style="margin-top:0;">📋 Your Order</h3>';
+                
+                cart.forEach(item => {
+                    const subtotal = item.price * item.quantity;
+                    total += subtotal;
+                    html += `
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <div>
+                                    <div class="cart-item-name">${escapeHTML(item.name)}</div>
+                                    <div class="cart-item-price">${item.price} ETB × ${item.quantity}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:18px; font-weight:600;">${subtotal} ETB</span>
+                                <button class="btn-remove" onclick="removeItem(${item.id})">✕</button>
+                            </div>
+                        </div>`;
+                });
+                
+                html += `
+                    <div class="cart-total">💰 Total: ${total.toLocaleString()} ETB</div>
+                    <input type="text" id="roomServiceInput" class="room-input" placeholder="Room number (optional, e.g. 101)">
+                    <div class="cart-actions">
+                        <a href="/menu" class="btn btn-primary" style="text-decoration:none;">📋 Continue Shopping</a>
+                        <button onclick="clearCart()" class="btn btn-danger">🗑️ Clear</button>
+                        <button onclick="placeOrder()" class="btn btn-gold" style="flex:2;">✅ Place Order</button>
+                    </div>
+                </div>`;
+                
+                container.innerHTML = html;
+            } catch(e) { container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Connection error.</p>'; }
+        }
+        
+        async function removeItem(cartId) {
+            try {
+                const res = await fetch('/api/cart/remove/' + cartId, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                if (res.ok) { showToast('Item removed'); renderCart(); }
+            } catch(e) { showError('Failed to remove'); }
+        }
+        
+        async function clearCart() {
+            if (!confirm('Clear entire cart?')) return;
+            try {
+                const res = await fetch('/api/cart');
+                const cart = await res.json();
+                for (const item of cart) {
+                    await fetch('/api/cart/remove/' + item.id, { method: 'DELETE', headers: { 'X-CSRFToken': csrfToken } });
+                }
+                showToast('Cart cleared');
+                renderCart();
+            } catch(e) { showError('Failed to clear cart'); }
+        }
+        
+        async function placeOrder() {
+            const room = document.getElementById('roomServiceInput')?.value || '';
+            try {
+                const res = await fetch('/api/cart/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ room_number: room })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`✅ Order placed! Total: ${data.total} ETB`);
+                    setTimeout(() => window.location.href = '/dashboard', 1500);
+                } else {
+                    showError(data.error || 'Checkout failed');
+                }
+            } catch(e) { showError('Connection error'); }
+        }
+        
+        renderCart();
+    </script>
+</body>
+</html>
