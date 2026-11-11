@@ -116,6 +116,14 @@
             </div>
         </div>
 
+        <!-- MY FOOD ORDERS -->
+        <div class="card" style="margin-bottom: 25px;">
+            <h3>🍽️ My Food Orders</h3>
+            <ul id="foodOrdersList">
+                <li style="color: #888;">Loading orders...</li>
+            </ul>
+        </div>
+
         <!-- CHANGE PASSWORD -->
         <div class="card" style="margin-bottom: 25px;">
             <h3>🔑 Change Password</h3>
@@ -170,6 +178,32 @@
                     `).join('');
                 }
             } catch (error) { console.error("Error loading bookings:", error); }
+        }
+
+        async function loadFoodOrders() {
+            try {
+                const response = await fetch('/api/my-food-orders');
+                if (response.ok) {
+                    const orders = await response.json();
+                    const list = document.getElementById('foodOrdersList');
+                    if (orders.length === 0) {
+                        list.innerHTML = '<li style="color: #888;">No food orders yet. <a href="/restaurant" style="color: #ffd700;">Order something →</a></li>';
+                        return;
+                    }
+                    list.innerHTML = orders.map(o => {
+                        const items = JSON.parse(o.items).map(i => `${i.qty}x ${i.name}`).join(', ');
+                        return `
+                            <li class="booking-item" style="border-left-color: #ffd700;">
+                                <strong>Order #${o.id}</strong> · ${o.date}<br>
+                                🍔 ${items}<br>
+                                💰 Total: ${o.total} ETB · Room: ${o.room || 'Takeaway'}<br>
+                                Status: <span style="color: ${o.status === 'delivered' ? '#4caf50' : '#ffd700'}; font-weight: bold;">${o.status.toUpperCase()}</span><br>
+                                <a href="/api/food-orders/${o.id}/receipt" target="_blank" style="display: inline-block; margin-top: 8px; background: #27ae60; color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px;">📄 Download Receipt</a>
+                            </li>
+                        `;
+                    }).join('');
+                }
+            } catch (error) { console.error("Error loading food orders:", error); }
         }
 
         async function checkAdminStatus() {
@@ -232,6 +266,7 @@
 
         loadProfile();
         loadBookings();
+        loadFoodOrders();
     </script>
 </body>
 </html>
