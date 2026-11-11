@@ -181,7 +181,7 @@ function escapeHTML(str) {
                             <div class="menu-card">
                                 <img src="${img}" onerror="this.src='https://via.placeholder.com/400x200?text=Food+Image'">
                                 <div class="content">
-                                    <span class="category">${item.category}</span>
+                                    <span class="category">${escapeHTML(item.category)}</span>
                                     <h3>${escapeHTML(item.name)}</h3>
                                     <p>${escapeHTML(item.description) || ''}</p>
                                     <div class="price">${item.price.toLocaleString()} ETB</div>
