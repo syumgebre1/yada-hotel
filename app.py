@@ -194,7 +194,9 @@ def add_pdf_header(elements, title, subtitle=""):
     qr_img.save(qr_buffer, format="PNG")
     qr_buffer.seek(0)
     
-    logo_path = 'static/logo.jpg'
+    logo_path = os.path.join(app.root_path, 'static', 'logo.png')
+    if not os.path.exists(logo_path):
+        logo_path = os.path.join(app.root_path, 'static', 'logo.jpg')
     logo_img = RLImage(logo_path, width=60, height=60) if os.path.exists(logo_path) else Spacer(1, 60)
     qr_flowable = RLImage(qr_buffer, width=60, height=60)
     
